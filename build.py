@@ -41,7 +41,7 @@ LEAF_PAGES = [
 
 SUPPORT_FILES = [
     'support.js', 'image-slot.js', 'wekare-steps.js',
-    'wekare-orbits.js', 'wekare-motion.js',
+    'wekare-orbits.js', 'wekare-motion.js', 'wekare-mark.png',
 ]
 
 

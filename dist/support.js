@@ -154,14 +154,23 @@
 
     // Hover/focus interaction, independent of re-render.
     hoverBindings.forEach(function (b) {
-      var applyBase = function () { applyStyleString(b.el, b.el.getAttribute('style') || ''); };
+      // Resetting must not just re-apply the base style string — a hover
+      // style commonly introduces properties (transform, box-shadow, an
+      // --icon-* custom property) that the base string never declared at
+      // all, so re-applying only the base's own keys leaves those stuck
+      // forever after the first hover. Explicitly clear every key the
+      // hover/focus style touches, then layer the base back on top.
+      var reset = function (introduced) {
+        for (var k in introduced) b.el.style.removeProperty(k);
+        applyStyleString(b.el, b.el.getAttribute('style') || '');
+      };
       if (b.hover) {
         b.el.addEventListener('mouseenter', function () { for (var k in b.hover) b.el.style.setProperty(k, b.hover[k]); });
-        b.el.addEventListener('mouseleave', function () { applyBase(); });
+        b.el.addEventListener('mouseleave', function () { reset(b.hover); });
       }
       if (b.focus) {
         b.el.addEventListener('focus', function () { for (var k in b.focus) b.el.style.setProperty(k, b.focus[k]); });
-        b.el.addEventListener('blur', function () { applyBase(); });
+        b.el.addEventListener('blur', function () { reset(b.focus); });
       }
     });
 
