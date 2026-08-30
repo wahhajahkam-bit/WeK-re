@@ -213,5 +213,56 @@
     });
   }
 
-  window.DC = { mount: mount };
+  // Where form submissions (Get Help, Become a Mentor) are sent.
+  // NOT FINALIZED — this address was never confirmed on the call and needs
+  // sourcing from We Käre before launch. Swap it here in one place once
+  // it's confirmed; everything below reads from this constant.
+  window.WEKARE_CONTACT_EMAIL = 'hello@wekare.org'; // TODO: confirm real inbox before going live
+
+  // Reads every labelled field inside `container` (skips checkboxes —
+  // use collectCheckedLabels for those) using each <label>'s own text as
+  // the field name, so forms don't need explicit name= attributes.
+  function collectFormFields(container) {
+    var out = [];
+    container.querySelectorAll('label').forEach(function (label) {
+      var control = label.querySelector('input, select, textarea');
+      if (!control || control.type === 'checkbox') return;
+      var clone = label.cloneNode(true);
+      var innerControl = clone.querySelector('input, select, textarea');
+      if (innerControl) innerControl.remove();
+      var fieldName = clone.textContent.replace(/\s+/g, ' ').trim();
+      out.push({ field: fieldName, value: control.value || '' });
+    });
+    return out;
+  }
+
+  function collectCheckedLabels(container) {
+    var out = [];
+    container.querySelectorAll('label').forEach(function (label) {
+      var cb = label.querySelector('input[type="checkbox"]');
+      if (cb && cb.checked) out.push(label.textContent.replace(/\s+/g, ' ').trim());
+    });
+    return out;
+  }
+
+  // Static pages can't send email server-side, so submissions go out as a
+  // mailto: — it opens the visitor's own mail client with the submission
+  // pre-filled, addressed to WEKARE_CONTACT_EMAIL, and they hit send.
+  function mailtoSubmit(subject, fields, checkedLabels) {
+    var lines = fields.map(function (f) { return f.field + ': ' + (f.value || '—'); });
+    if (checkedLabels && checkedLabels.length) {
+      lines.push('', 'Selected: ' + checkedLabels.join('; '));
+    }
+    var url = 'mailto:' + encodeURIComponent(window.WEKARE_CONTACT_EMAIL) +
+      '?subject=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(lines.join('\n'));
+    window.location.href = url;
+  }
+
+  window.DC = {
+    mount: mount,
+    collectFormFields: collectFormFields,
+    collectCheckedLabels: collectCheckedLabels,
+    mailtoSubmit: mailtoSubmit
+  };
 })();
