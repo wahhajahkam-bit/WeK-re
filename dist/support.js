@@ -214,7 +214,7 @@
   }
 
   // Where form submissions (Get Help, Become a Mentor) are sent.
-  window.WEKARE_CONTACT_EMAIL = 'Ahkam.Khalid@Konsaldion.com';
+  window.WEKARE_CONTACT_EMAIL = 'ahkam.khalid@konsalidon.com';
 
   // Reads every labelled field inside `container` (skips checkboxes —
   // use collectCheckedLabels for those) using each <label>'s own text as
