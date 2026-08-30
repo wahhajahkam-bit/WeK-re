@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Ubuntu+Sans:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<script>
+(function(){var r=window.__resources||{};['./wekare-steps.js','./image-slot.js'].forEach(function(p){var k='__wk_'+p;if(window[k])return;window[k]=1;var s=document.createElement('script');s.src=(r[p]||p);document.head.appendChild(s);});})();
+</script>
+<style>
+  body { margin: 0; background: #F7F5F0; color: #221F35; }
+  a { color: #6C63C4; text-decoration: none; }
+  a:hover { color: #4F47A6; }
+  ::selection { background: #DCD8F2; }
+  :focus-visible { outline: 2px solid #6C63C4; outline-offset: 3px; border-radius: 4px; }
+  @media print { [data-reveal] { opacity: 1 !important; transform: none !important; } }
+  input, select, textarea { font: inherit; }
+</style>
+</helmet>
+<div style="background:#F7F5F0;font-family:'Ubuntu Sans',system-ui,sans-serif;color:#221F35;text-wrap:pretty">
+<dc-import name="Nav" active="mentors" hint-size="100%,76px"></dc-import>
+
+<section style="position:relative;overflow:hidden;background:#F7F5F0">
+  <div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(52% 74% at 102% 32%, rgba(108,99,196,.26) 0%, rgba(108,99,196,.10) 38%, rgba(108,99,196,0) 74%)"></div>
+  <div style="position:relative;max-width:1240px;margin:0 auto;padding:92px 32px 84px;display:flex;flex-wrap:wrap;gap:44px 64px;align-items:center">
+    <div style="flex:1 1 400px;min-width:0;display:flex;flex-direction:column;gap:26px">
+      <div data-reveal style="display:flex;align-items:center;gap:11px;opacity:0;transform:translateY(14px);transition:opacity .7s ease,transform .7s ease">
+        <span style="width:22px;height:1px;background:#6C63C4"></span>
+        <span style="font-size:11.5px;letter-spacing:.15em;color:#6C63C4;text-transform:uppercase;font-weight:500;white-space:nowrap">For Mentors</span>
+      </div>
+      <h1 data-reveal style="margin:0;font-family:Ubuntu,serif;font-weight:300;font-size:clamp(36px,4.5vw,58px);line-height:1.12;letter-spacing:-.015em;opacity:0;transform:translateY(18px);transition:opacity .8s ease .05s,transform .8s ease .05s">Share what you know. <em style="font-style:italic;color:#6C63C4">Change a career.</em></h1>
+      <p data-reveal style="margin:0;max-width:560px;font-size:19px;line-height:1.75;color:#4A4560;opacity:0;transform:translateY(18px);transition:opacity .8s ease .12s,transform .8s ease .12s">An hour of your judgement is worth more to someone stuck than another year of job boards. We keep the commitment light and the matching precise.</p>
+      <div data-reveal style="display:flex;flex-wrap:wrap;gap:14px;opacity:0;transform:translateY(18px);transition:opacity .8s ease .19s,transform .8s ease .19s">
+        <a href="#mentor-form" style="background:#6C63C4;color:#F7F5F0;padding:16px 32px;border-radius:999px;white-space:nowrap;font-size:16.5px;font-weight:500;display:inline-flex;align-items:center;gap:10px;box-shadow:0 6px 22px rgba(108,99,196,.3);transition:background .45s cubic-bezier(.33,.02,.3,1),transform .45s cubic-bezier(.33,.02,.3,1)" style-hover="background:#5A51B4;color:#F7F5F0;transform:translateY(-2px)">Become a Mentor <i class="ph ph-arrow-right" style="font-size:17px"></i></a>
+      </div>
+    </div>
+    <div data-reveal style="flex:0 1 320px;min-width:240px;opacity:0;transform:translateY(18px);transition:opacity .7s ease .1s,transform .7s ease .1s"><div style="border-radius:24px;overflow:hidden;background:#EBE9F5;aspect-ratio:4/5"><image-slot id="mentor-hero" shape="rounded" radius="24" placeholder="Illustrated portrait: a mentor"></image-slot></div></div>
+  </div>
+</section>
+
+<section style="background:#EBE9F5;padding:88px 32px">
+  <div style="max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:52px">
+    <div data-reveal style="display:flex;flex-direction:column;gap:16px;max-width:640px;opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s ease">
+      <div style="display:flex;align-items:center;gap:11px"><span style="width:22px;height:1px;background:#6C63C4"></span><span style="font-size:11.5px;letter-spacing:.15em;color:#6C63C4;text-transform:uppercase;font-weight:500;white-space:nowrap">What mentoring involves</span></div>
+      <h2 style="margin:0;font-family:Ubuntu,serif;font-weight:300;font-size:clamp(30px,3.4vw,44px);line-height:1.18">Three things, and <em style="font-style:italic;color:#6C63C4">nothing hidden.</em></h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:18px">
+      <div data-reveal style="display:flex;opacity:0;transform:translateY(18px);transition:opacity .7s ease 0.0s,transform .7s ease 0.0s">
+        <div style="background:#FDFCFA;border:1px solid #DFDBF0;border-radius:20px;padding:30px 28px;display:flex;flex-direction:column;gap:16px;transition:transform .6s cubic-bezier(.33,.02,.3,1),box-shadow .7s cubic-bezier(.33,.02,.3,1)" style-hover="transform:translateY(-6px);box-shadow:0 14px 32px rgba(34,31,53,.09);--icon-bg:#9E97E0;--icon-fg:#F7F5F0;--icon-glow:0 0 10px 2px rgba(158,151,224,.5), 0 0 26px 8px rgba(158,151,224,.28), 0 0 54px 18px rgba(158,151,224,.14)">
+        <span style="width:46px;height:46px;border-radius:999px;background:var(--icon-bg,#EBE9F5);box-shadow:var(--icon-glow,none);display:flex;align-items:center;justify-content:center;color:var(--icon-fg,#6C63C4);font-size:22px;transition:background .6s cubic-bezier(.33,.02,.3,1),color .6s cubic-bezier(.33,.02,.3,1),box-shadow .7s cubic-bezier(.33,.02,.3,1)"><i class="ph ph-compass"></i></span>
+        <h3 style="margin:0;font-family:Ubuntu,serif;font-weight:400;font-size:21px">Assessing and advising</h3>
+        <p style="margin:0;font-size:16.5px;line-height:1.75;color:#5A5670">You talk to a candidate about where they are and what should come next. Your read on their field is the thing we cannot manufacture.</p>
+      </div>
+      </div>
+      <div data-reveal style="display:flex;opacity:0;transform:translateY(18px);transition:opacity .7s ease 0.06s,transform .7s ease 0.06s">
+        <div style="background:#FDFCFA;border:1px solid #DFDBF0;border-radius:20px;padding:30px 28px;display:flex;flex-direction:column;gap:16px;transition:transform .6s cubic-bezier(.33,.02,.3,1),box-shadow .7s cubic-bezier(.33,.02,.3,1)" style-hover="transform:translateY(-6px);box-shadow:0 14px 32px rgba(34,31,53,.09);--icon-bg:#9E97E0;--icon-fg:#F7F5F0;--icon-glow:0 0 10px 2px rgba(158,151,224,.5), 0 0 26px 8px rgba(158,151,224,.28), 0 0 54px 18px rgba(158,151,224,.14)">
+        <span style="width:46px;height:46px;border-radius:999px;background:var(--icon-bg,#EBE9F5);box-shadow:var(--icon-glow,none);display:flex;align-items:center;justify-content:center;color:var(--icon-fg,#6C63C4);font-size:22px;transition:background .6s cubic-bezier(.33,.02,.3,1),color .6s cubic-bezier(.33,.02,.3,1),box-shadow .7s cubic-bezier(.33,.02,.3,1)"><i class="ph ph-clock-user"></i></span>
+        <h3 style="margin:0;font-family:Ubuntu,serif;font-weight:400;font-size:21px">A light, flexible commitment</h3>
+        <p style="margin:0;font-size:16.5px;line-height:1.75;color:#5A5670">Built around your availability. Some mentors take one conversation a quarter, some take one a month. Both are useful.</p>
+      </div>
+      </div>
+      <div data-reveal style="display:flex;opacity:0;transform:translateY(18px);transition:opacity .7s ease 0.12s,transform .7s ease 0.12s">
+        <div style="background:#FDFCFA;border:1px solid #DFDBF0;border-radius:20px;padding:30px 28px;display:flex;flex-direction:column;gap:16px;transition:transform .6s cubic-bezier(.33,.02,.3,1),box-shadow .7s cubic-bezier(.33,.02,.3,1)" style-hover="transform:translateY(-6px);box-shadow:0 14px 32px rgba(34,31,53,.09);--icon-bg:#9E97E0;--icon-fg:#F7F5F0;--icon-glow:0 0 10px 2px rgba(158,151,224,.5), 0 0 26px 8px rgba(158,151,224,.28), 0 0 54px 18px rgba(158,151,224,.14)">
+        <span style="width:46px;height:46px;border-radius:999px;background:var(--icon-bg,#EBE9F5);box-shadow:var(--icon-glow,none);display:flex;align-items:center;justify-content:center;color:var(--icon-fg,#6C63C4);font-size:22px;transition:background .6s cubic-bezier(.33,.02,.3,1),color .6s cubic-bezier(.33,.02,.3,1),box-shadow .7s cubic-bezier(.33,.02,.3,1)"><i class="ph ph-hand-heart"></i></span>
+        <h3 style="margin:0;font-family:Ubuntu,serif;font-weight:400;font-size:21px">Unpaid, explicitly</h3>
+        <p style="margin:0;font-size:16.5px;line-height:1.75;color:#5A5670">Pro bono, and we say so plainly. This is about giving back, and nobody in the chain takes a fee.</p>
+      </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:#F7F5F0;padding:88px 32px">
+  <div style="max-width:1240px;margin:0 auto;display:flex;flex-wrap:wrap;gap:48px 64px;align-items:flex-start">
+    <div data-reveal style="flex:1 1 320px;max-width:480px;display:flex;flex-direction:column;gap:18px;opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s ease">
+      <div style="display:flex;align-items:center;gap:11px"><span style="width:22px;height:1px;background:#6C63C4"></span><span style="font-size:11.5px;letter-spacing:.15em;color:#6C63C4;text-transform:uppercase;font-weight:500;white-space:nowrap">Who we're looking for</span></div>
+      <h2 style="margin:0;font-family:Ubuntu,serif;font-weight:300;font-size:clamp(28px,3.2vw,40px);line-height:1.18">Experienced professionals, <em style="font-style:italic;color:#6C63C4">across every field.</em></h2>
+      <p style="margin:0;font-size:18px;line-height:1.78;color:#4A4560">People willing to spend a little time helping someone find their way. There is no minimum seniority and no sector we would turn away. The candidates come from everywhere, so the mentors need to as well.</p>
+      <p style="margin:0;font-size:18px;line-height:1.78;color:#4A4560">If you have hired, been hired, or changed direction yourself, you already know something a candidate does not.</p>
+    </div>
+    <div data-steps style="flex:1 1 400px;min-width:0;display:flex;flex-direction:column">
+      <div data-reveal data-step-row style="display:grid;grid-template-columns:56px 1fr;gap:22px;opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease">
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <span data-step-circle style="width:52px;height:52px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-family:Ubuntu,serif;font-size:20px;flex:0 0 auto">1</span>
+          <span data-step-line style="flex:1;min-height:32px"></span>
+        </div>
+        <div style="padding-bottom:26px">
+          <div data-step-card style="background:#FDFCFA;border:1px solid #E4E0D6;border-radius:18px;padding:26px 28px;transition:transform .6s cubic-bezier(.33,.02,.3,1),box-shadow .7s cubic-bezier(.33,.02,.3,1),border-color .6s cubic-bezier(.33,.02,.3,1)" style-hover="transform:translateY(-4px);box-shadow:0 12px 28px rgba(34,31,53,.08);border-color:#6C63C4">
+            <h3 style="margin:0;font-family:Ubuntu,serif;font-size:20px;font-weight:400;line-height:1.4">Reach out, or we reach out</h3>
+            <p style="margin:10px 0 0;font-size:16.5px;line-height:1.75;color:#5A5670">Connect with us through the form below. We also approach potential mentors directly on LinkedIn. If that is how you found us, this is the same door.</p>
+          </div>
+        </div>
+      </div>
+      <div data-reveal data-step-row style="display:grid;grid-template-columns:56px 1fr;gap:22px;opacity:0;transform:translateY(18px);transition:opacity .7s ease .08s,transform .7s ease .08s">
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <span data-step-circle style="width:52px;height:52px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-family:Ubuntu,serif;font-size:20px;flex:0 0 auto">2</span>
+          <span data-step-line style="flex:1;min-height:32px"></span>
+        </div>
+        <div style="padding-bottom:26px">
+          <div data-step-card style="background:#FDFCFA;border:1px solid #E4E0D6;border-radius:18px;padding:26px 28px;transition:transform .6s cubic-bezier(.33,.02,.3,1),box-shadow .7s cubic-bezier(.33,.02,.3,1),border-color .6s cubic-bezier(.33,.02,.3,1)" style-hover="transform:translateY(-4px);box-shadow:0 12px 28px rgba(34,31,53,.08);border-color:#6C63C4">
+            <h3 style="margin:0;font-family:Ubuntu,serif;font-size:20px;font-weight:400;line-height:1.4">We agree when and how you can help</h3>
+            <p style="margin:10px 0 0;font-size:16.5px;line-height:1.75;color:#5A5670">Availability, times, and the best way to reach you. We would rather set this honestly at the start than chase you later.</p>
+          </div>
+        </div>
+      </div>
+      <div data-reveal data-step-row style="display:grid;grid-template-columns:56px 1fr;gap:22px;opacity:0;transform:translateY(18px);transition:opacity .7s ease .16s,transform .7s ease .16s">
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <span data-step-circle style="width:52px;height:52px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-family:Ubuntu,serif;font-size:20px;flex:0 0 auto">3</span>
+        </div>
+        <div>
+          <div data-step-card style="background:#FDFCFA;border:1px solid #E4E0D6;border-radius:18px;padding:26px 28px;transition:transform .6s cubic-bezier(.33,.02,.3,1),box-shadow .7s cubic-bezier(.33,.02,.3,1),border-color .6s cubic-bezier(.33,.02,.3,1)" style-hover="transform:translateY(-4px);box-shadow:0 12px 28px rgba(34,31,53,.08);border-color:#6C63C4">
+            <h3 style="margin:0;font-family:Ubuntu,serif;font-size:20px;font-weight:400;line-height:1.4">Onboarded, then matched</h3>
+            <p style="margin:10px 0 0;font-size:16.5px;line-height:1.75;color:#5A5670">Once you are comfortable, you are onboarded and matched with candidates in your field when they need guidance. Not before, and never in bulk.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="mentor-form" style="background:#EBE9F5;padding:88px 32px 96px">
+  <div style="max-width:760px;margin:0 auto">
+    <div data-reveal style="background:#FDFCFA;border:1px solid #DFDBF0;border-radius:26px;padding:48px 44px;box-shadow:0 14px 40px rgba(34,31,53,.07);opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease">
+      <sc-if value="{{ notSent }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:32px">
+          <div style="display:flex;align-items:center;gap:11px"><span style="width:22px;height:1px;background:#6C63C4"></span><span style="font-size:11.5px;letter-spacing:.15em;color:#6C63C4;text-transform:uppercase;font-weight:500;white-space:nowrap">Become a mentor</span></div>
+          <h2 style="margin:0;font-family:Ubuntu,serif;font-weight:300;font-size:clamp(26px,3vw,36px);line-height:1.2">Tell us how you'd like to help.</h2>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:20px">
+          <label style="display:flex;flex-direction:column;gap:8px;font-size:14.5px;color:#4A4560">Full name<input type="text" placeholder="Your name" style="border:1px solid #DFDBF0;background:#F7F5F0;border-radius:12px;padding:14px 16px;font-size:16px;color:#221F35;outline:none;transition:border-color .45s cubic-bezier(.33,.02,.3,1)" style-focus="border-color:#6C63C4"></label>
+          <label style="display:flex;flex-direction:column;gap:8px;font-size:14.5px;color:#4A4560">Email<input type="email" placeholder="you@company.com" style="border:1px solid #DFDBF0;background:#F7F5F0;border-radius:12px;padding:14px 16px;font-size:16px;color:#221F35;outline:none;transition:border-color .45s cubic-bezier(.33,.02,.3,1)" style-focus="border-color:#6C63C4"></label>
+          <label style="display:flex;flex-direction:column;gap:8px;font-size:14.5px;color:#4A4560">Field or industry<input type="text" placeholder="e.g. finance, engineering, marketing" style="border:1px solid #DFDBF0;background:#F7F5F0;border-radius:12px;padding:14px 16px;font-size:16px;color:#221F35;outline:none;transition:border-color .45s cubic-bezier(.33,.02,.3,1)" style-focus="border-color:#6C63C4"></label>
+          <label style="display:flex;flex-direction:column;gap:8px;font-size:14.5px;color:#4A4560">Current role<input type="text" placeholder="Your title and company" style="border:1px solid #DFDBF0;background:#F7F5F0;border-radius:12px;padding:14px 16px;font-size:16px;color:#221F35;outline:none;transition:border-color .45s cubic-bezier(.33,.02,.3,1)" style-focus="border-color:#6C63C4"></label>
+          <label style="display:flex;flex-direction:column;gap:8px;font-size:14.5px;color:#4A4560;grid-column:1/-1">How much time can you give?<select style="border:1px solid #DFDBF0;background:#F7F5F0;border-radius:12px;padding:14px 16px;font-size:16px;color:#221F35;outline:none;transition:border-color .45s cubic-bezier(.33,.02,.3,1)" style-focus="border-color:#6C63C4"><option>A conversation a quarter</option><option>A conversation a month</option><option>A conversation a fortnight</option><option>Ad hoc, ask me when it comes up</option></select></label>
+          <label style="display:flex;flex-direction:column;gap:8px;font-size:14.5px;color:#4A4560;grid-column:1/-1">Anything we should know<textarea rows="4" placeholder="The kind of candidate you'd be most useful to, or anything else." style="border:1px solid #DFDBF0;background:#F7F5F0;border-radius:12px;padding:14px 16px;font-size:16px;color:#221F35;outline:none;resize:vertical;transition:border-color .45s cubic-bezier(.33,.02,.3,1)" style-focus="border-color:#6C63C4"></textarea></label>
+        </div>
+        <button type="button" onClick="{{ send }}" style="margin-top:28px;background:#6C63C4;color:#F7F5F0;border:none;padding:16px 32px;border-radius:999px;white-space:nowrap;font-size:16.5px;font-weight:500;display:inline-flex;align-items:center;gap:10px;cursor:pointer;box-shadow:0 6px 22px rgba(108,99,196,.3);transition:background .45s cubic-bezier(.33,.02,.3,1),transform .45s cubic-bezier(.33,.02,.3,1)" style-hover="background:#5A51B4;transform:translateY(-2px)">Become a Mentor <i class="ph ph-arrow-right" style="font-size:17px"></i></button>
+        <p style="margin:18px 0 0;font-size:14px;color:#8A85A0">We will come back to you within a few days to agree how and when you can help.</p>
+      </sc-if>
+      <sc-if value="{{ sent }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:18px;align-items:flex-start;padding:20px 0">
+          <span style="width:56px;height:56px;border-radius:999px;background:#EBE9F5;display:flex;align-items:center;justify-content:center;color:#6C63C4;font-size:28px"><i class="ph ph-check"></i></span>
+          <h2 style="margin:0;font-family:Ubuntu,serif;font-weight:300;font-size:clamp(26px,3vw,36px);line-height:1.25">Thank you. That means a lot.</h2>
+          <p style="margin:0;font-size:18px;line-height:1.78;color:#4A4560;max-width:520px">Someone from We Käre will be in touch within a few days to agree your availability and the best way to reach you. Nothing is expected of you until then.</p>
+          <a href="Home.dc.html" style="margin-top:6px;display:inline-flex;align-items:center;gap:9px;font-size:16px;font-weight:500;color:#4F47A6">Back to home <i class="ph ph-arrow-right"></i></a>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</section>
+
+<dc-import name="Footer" hint-size="100%,460px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { sent: false };
+  componentDidMount() {
+    this._reveal();
+    this._t = setInterval(() => this._reveal(), 1200);
+    this._steps = setInterval(() => this._wireSteps(), 300);
+    this._wireSteps();
+  }
+  _wireSteps() {
+    const box = document.querySelector('[data-steps]');
+    if (!window.WeKareSteps || !box) return;
+    if (window.WeKareSteps.init(box)) { clearInterval(this._steps); this._steps = null; }
+  }
+  componentWillUnmount() { clearInterval(this._t); clearInterval(this._steps); if (this._io) this._io.disconnect(); }
+  _reveal() {
+    if (!this._safety) { this._safety = setTimeout(() => { document.querySelectorAll('[data-reveal]').forEach(el => { el.style.transition = 'none'; el.style.opacity = '1'; el.style.transform = 'none'; }); }, 1400); }
+    if (!this._io) {
+      this._io = new IntersectionObserver(es => es.forEach(e => {
+        if (e.isIntersecting) { e.target.style.opacity = '1'; e.target.style.transform = ''; this._io.unobserve(e.target); }
+      }), { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+    }
+    document.querySelectorAll('[data-reveal]').forEach(el => {
+      if (!el.dataset.revealBound) { el.dataset.revealBound = '1'; this._io.observe(el); }
+    });
+  }
+  renderVals() {
+    return {
+      sent: this.state.sent,
+      notSent: !this.state.sent,
+      send: () => this.setState({ sent: true }),
+    };
+  }
+}
+</script>
+</body>
+</html>

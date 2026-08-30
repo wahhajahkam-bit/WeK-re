@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Ubuntu+Sans:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<style>
+  a { color: #6C63C4; text-decoration: none; }
+  a:hover { color: #4F47A6; }
+  ::selection { background: #DCD8F2; }
+  :focus-visible { outline: 2px solid #6C63C4; outline-offset: 3px; border-radius: 4px; }
+  @keyframes veilOut { from { opacity: 1 } to { opacity: 0 } }
+  @keyframes veilIn  { from { opacity: 0 } to { opacity: 1 } }
+</style>
+</helmet>
+<div ref="{{ fadeRef }}" aria-hidden="true" style="position:fixed;inset:0;z-index:300;background:#F7F5F0;opacity:1;pointer-events:none"></div>
+<div ref="{{ spacerRef }}" style="height:76px" aria-hidden="true"></div>
+<header ref="{{ headerRef }}" style="position:fixed;top:0;left:0;right:0;z-index:50;border-bottom:1px solid;font-family:'Ubuntu Sans',system-ui,sans-serif">
+  <div style="max-width:1240px;margin:0 auto;padding:12px 32px;min-height:76px;display:flex;align-items:center;flex-wrap:wrap;gap:14px 28px">
+    <a ref="{{ brandRef }}" href="Home.dc.html" style="display:flex;align-items:center;gap:11px;flex:0 0 auto;color:#221F35">
+      <svg viewBox="0 0 1000 1000" width="34" height="34" aria-hidden="true" fill="#6C63C4" style="display:block;width:34px;height:34px;flex:0 0 auto;filter:drop-shadow(0 0 0 rgba(158,151,224,0));transition:filter .6s cubic-bezier(.33,.02,.3,1),transform .6s cubic-bezier(.33,.02,.3,1)" style-hover="filter:drop-shadow(0 0 10px rgba(108,99,196,.7)) drop-shadow(0 0 24px rgba(108,99,196,.4));transform:scale(1.06)">
+        <path id="nav-mark-blade" d="M385.53 939.38A108.35 108.35 0 0 1 389.79 807.83A779.4 779.4 0 0 0 454.85 741.37A52.3 52.3 0 0 1 547.86 754.58A149.98 149.98 0 0 0 502.09 789.04A407.72 407.72 0 0 0 385.53 939.38Z"></path>
+        <use href="#nav-mark-blade" transform="rotate(51.4286 500 500)"></use>
+        <use href="#nav-mark-blade" transform="rotate(102.8571 500 500)"></use>
+        <use href="#nav-mark-blade" transform="rotate(154.2857 500 500)"></use>
+        <use href="#nav-mark-blade" transform="rotate(205.7143 500 500)"></use>
+        <use href="#nav-mark-blade" transform="rotate(257.1429 500 500)"></use>
+        <use href="#nav-mark-blade" transform="rotate(308.5714 500 500)"></use>
+      </svg>
+      <span style="display:flex;flex-direction:column;line-height:1.05">
+        <span style="font-family:Ubuntu,serif;font-size:19px;font-weight:400;letter-spacing:.01em">We Käre</span>
+        <span style="font-size:9.5px;letter-spacing:.1em;color:#8A85A0;text-transform:lowercase">part of konsälidön</span>
+      </span>
+    </a>
+    <nav style="margin-left:auto;display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;gap:10px 16px;font-size:14px">
+      <div ref="{{ pillRef }}" style="display:flex;align-items:center;flex-wrap:nowrap;justify-content:flex-end;border:1px solid;border-radius:999px">
+      <a href="Home.dc.html" style="color:{{ cHome }};text-shadow:{{ gHome }};display:flex;align-items:center;white-space:nowrap;transition:color .45s cubic-bezier(.33,.02,.3,1),text-shadow .45s cubic-bezier(.33,.02,.3,1)" style-hover="color:#6C63C4">Home</a>
+      <a href="Who-We-Help.dc.html" style="color:{{ cWho }};text-shadow:{{ gWho }};display:flex;align-items:center;white-space:nowrap;transition:color .45s cubic-bezier(.33,.02,.3,1),text-shadow .45s cubic-bezier(.33,.02,.3,1)" style-hover="color:#6C63C4">Who We Help</a>
+      <a href="How-It-Works.dc.html" style="color:{{ cHow }};text-shadow:{{ gHow }};display:flex;align-items:center;white-space:nowrap;transition:color .45s cubic-bezier(.33,.02,.3,1),text-shadow .45s cubic-bezier(.33,.02,.3,1)" style-hover="color:#6C63C4">How It Works</a>
+      <a href="Success-Stories.dc.html" style="color:{{ cStories }};text-shadow:{{ gStories }};display:flex;align-items:center;white-space:nowrap;transition:color .45s cubic-bezier(.33,.02,.3,1),text-shadow .45s cubic-bezier(.33,.02,.3,1)" style-hover="color:#6C63C4">Success Stories</a>
+      <a href="For-Mentors.dc.html" style="color:{{ cMentors }};text-shadow:{{ gMentors }};display:flex;align-items:center;white-space:nowrap;transition:color .45s cubic-bezier(.33,.02,.3,1),text-shadow .45s cubic-bezier(.33,.02,.3,1)" style-hover="color:#6C63C4">For Mentors</a>
+      <a href="About-Us.dc.html" style="color:{{ cAbout }};text-shadow:{{ gAbout }};display:flex;align-items:center;white-space:nowrap;transition:color .45s cubic-bezier(.33,.02,.3,1),text-shadow .45s cubic-bezier(.33,.02,.3,1)" style-hover="color:#6C63C4">About Us</a>
+      </div>
+      <a href="Get-Help.dc.html" style="background:#6C63C4;color:#F7F5F0;padding:11px 22px;border-radius:999px;font-size:14.5px;font-weight:500;display:flex;align-items:center;gap:8px;white-space:nowrap;box-shadow:0 2px 10px rgba(108,99,196,.28);transition:background .45s cubic-bezier(.33,.02,.3,1),transform .45s cubic-bezier(.33,.02,.3,1)" style-hover="background:#5A51B4;color:#F7F5F0;transform:translateY(-1px)">Get Help <i class="ph ph-arrow-right" style="font-size:15px"></i></a>
+    </nav>
+  </div>
+</header>
+<sc-if value="{{ scrolled }}" hint-placeholder-val="{{ false }}">
+  <button type="button" onClick="{{ toTop }}" aria-label="Back to top" style="position:fixed;right:28px;bottom:28px;z-index:60;width:52px;height:52px;border-radius:999px;border:1px solid #C4BEE8;background:#6C63C4;color:#F7F5F0;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 24px rgba(65,58,134,.32);transition:background .45s cubic-bezier(.33,.02,.3,1),transform .45s cubic-bezier(.33,.02,.3,1)" style-hover="background:#5A51B4;transform:translateY(-3px)"><i class="ph ph-arrow-up"></i></button>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:76},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;who&quot;,&quot;how&quot;,&quot;stories&quot;,&quot;mentors&quot;,&quot;about&quot;,&quot;help&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { scrolled: false };
+  headerRef = React.createRef();
+  spacerRef = React.createRef();
+  pillRef = React.createRef();
+  brandRef = React.createRef();
+  fadeRef = React.createRef();
+  _over = null;
+  // Separate documents per page, so navigation would otherwise flash white.
+  // The overlay starts opaque, lifts on arrival, and drops again on departure.
+  // rAF-driven: CSS opacity transitions and freshly-started keyframes are both
+  // unreliable in this runtime, and a veil stuck opaque would blank the page
+  _fade(from, to, dur) {
+    const f = this.fadeRef.current;
+    if (!f) return;
+    cancelAnimationFrame(this._fadeRaf);
+    const t0 = performance.now();
+    const step = now => {
+      const p = Math.min(1, (now - t0) / dur);
+      const e = p < 1 ? 1 - Math.pow(1 - p, 3) : 1;
+      f.style.opacity = String(from + (to - from) * e);
+      if (p < 1) this._fadeRaf = requestAnimationFrame(step);
+      else { this._fadeRaf = null; f.style.opacity = String(to); }
+    };
+    f.style.opacity = String(from);
+    this._fadeRaf = requestAnimationFrame(step);
+  }
+  _initFade() {
+    const f = this.fadeRef.current;
+    if (!f || this._fadeInit) return;
+    this._fadeInit = true;
+    const hero = document.querySelector('section');
+    if (hero) f.style.background = getComputedStyle(hero).backgroundColor;
+    this._fade(1, 0, 340);
+    // hard guarantee: the page can never be left veiled
+    setTimeout(() => { if (this._fadeRaf) cancelAnimationFrame(this._fadeRaf); f.style.opacity = '0'; f.style.pointerEvents = 'none'; }, 1400);
+    this._leave = e => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = e.target.closest && e.target.closest('a[href]');
+      if (!a) return;
+      const href = a.getAttribute('href') || '';
+      if (!/\.dc\.html(\?|#|$)/.test(href) || a.target === '_blank') return;
+      // In the all-in-one build every page is already in this document, so the
+      // router swaps them in place; as separate files we navigate as usual.
+      const router = window.__wekareRouter;
+      if (router) {
+        const key = router.resolve(href);
+        if (!key || key === router.current()) return;
+        e.preventDefault();
+        f.style.pointerEvents = 'auto';
+        this._fade(0, 1, 260);
+        setTimeout(() => {
+          router.go(key);
+          f.style.pointerEvents = 'none';
+          this._fade(1, 0, 300);
+        }, 270);
+        return;
+      }
+      if (href.split('#')[0] === location.pathname.split('/').pop()) return;
+      e.preventDefault();
+      f.style.pointerEvents = 'auto';
+      this._fade(0, 1, 300);
+      setTimeout(() => { location.href = href; }, 310);
+    };
+    document.addEventListener('click', this._leave);
+    // returning via back/forward must not leave the page veiled
+    this._onShow = () => { f.style.pointerEvents = 'none'; this._fade(1, 0, 340); };
+    window.addEventListener('pageshow', this._onShow);
+  }
+  componentDidMount() {
+    this._sync = () => {
+      const h = this.headerRef.current, sp = this.spacerRef.current;
+      if (h && sp) {
+        sp.style.height = h.offsetHeight + 'px';
+        document.documentElement.style.setProperty('--nav-h', h.offsetHeight + 'px');
+      }
+    };
+    this._sync();
+    this._initFade();
+    [40, 200, 600].forEach(ms => setTimeout(() => this._initFade(), ms));
+    if (window.ResizeObserver && this.headerRef.current) {
+      this._ro = new ResizeObserver(this._sync);
+      this._ro.observe(this.headerRef.current);
+    }
+    window.addEventListener('resize', this._sync);
+    this._onScroll = () => {
+      const y = window.scrollY || document.documentElement.scrollTop || 0;
+      const next = y > 420;
+      if (next !== this.state.scrolled) this.setState({ scrolled: next });
+      // the pill treatment belongs to the hero: it lasts while the first
+      // section is still behind the bar, then the plain bar returns
+      const hero = document.querySelector('section');
+      const navH = this.headerRef.current ? this.headerRef.current.offsetHeight : 76;
+      const limit = hero ? hero.offsetHeight - navH : 0;
+      // Over the hero the bar dissolves and the links gather into a floating
+      // pill; past the hero the ordinary bar returns. Applied imperatively so it
+      // never depends on a re-render landing in time.
+      // the pill treatment belongs to the home hero alone; every other page
+      // keeps the ordinary bar from top to bottom
+      const isHome = (this.props.active || '') === 'home';
+      const over = isHome && limit > 0 && y < limit;
+      if (over !== this._over) {
+        this._over = over;
+        const h = this.headerRef.current, pill = this.pillRef.current, sp = this.spacerRef.current;
+        // the brand block belongs to the ordinary bar: over the hero only the
+        // pill floats, and the logo returns once the bar does
+        // Over the hero the brand stays anchored to the page rather than the
+        // fixed bar, so it scrolls away with the hero; once the ordinary bar
+        // arrives it rides along with it as usual.
+        const brand = this.brandRef.current;
+        if (brand) {
+          brand.style.transition = 'none';
+          brand.style.opacity = '1';
+          brand.style.pointerEvents = 'auto';
+          if (!over) brand.style.transform = 'none';
+        }
+        if (h) {
+          h.style.background = over ? 'transparent' : 'rgba(247,245,240,.92)';
+          h.style.backdropFilter = over ? 'none' : 'blur(14px)';
+          h.style.borderBottomColor = over ? 'transparent' : '#E4E0D6';
+        }
+        if (pill) {
+          pill.style.background = over ? 'rgba(255,255,255,.62)' : 'transparent';
+          pill.style.borderColor = over ? 'rgba(108,99,196,.18)' : 'transparent';
+          pill.style.padding = over ? '12px 20px' : '0px';
+          pill.style.gap = over ? '10px 17px' : '10px 18px';
+          pill.style.boxShadow = over ? '0 6px 24px rgba(52,44,102,.10)' : 'none';
+        }
+        // the strip behind the fixed bar carries the hero's own ground, so the
+        // pill reads as floating on the hero rather than on a separate band
+        if (sp) sp.style.background = over && hero ? getComputedStyle(hero).backgroundColor : '';
+      }
+      // runs every scroll: hold the brand against the page while over the hero
+      const brand = this.brandRef.current;
+      if (brand) brand.style.transform = over ? 'translateY(' + (-y) + 'px)' : 'none';
+    };
+    window.addEventListener('scroll', this._onScroll, { passive: true });
+    this._onScroll();
+    // the hero's height is not known until layout settles, so re-evaluate
+    [60, 250, 700, 1600].forEach(ms => setTimeout(this._onScroll, ms));
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => this._onScroll());
+    window.addEventListener('resize', this._onScroll);
+  }
+  componentWillUnmount() {
+    clearInterval(this._tw);
+    window.removeEventListener('scroll', this._onScroll);
+    window.removeEventListener('resize', this._onScroll);
+    window.removeEventListener('resize', this._sync);
+    cancelAnimationFrame(this._fadeRaf);
+    if (this._leave) document.removeEventListener('click', this._leave);
+    if (this._onShow) window.removeEventListener('pageshow', this._onShow);
+    if (this._ro) this._ro.disconnect();
+  }
+  _tweenTop() {
+    const el = document.scrollingElement || document.documentElement;
+    const from = el.scrollTop || window.scrollY || 0;
+    if (from <= 0) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.scrollTop = 0; return; }
+    clearInterval(this._tw);
+    const start = Date.now(), dur = 480;
+    this._tw = setInterval(() => {
+      const t = Math.min(1, (Date.now() - start) / dur);
+      el.scrollTop = Math.round(from - from * (1 - Math.pow(1 - t, 3)));
+      if (t >= 1) { clearInterval(this._tw); this._tw = null; el.scrollTop = 0; }
+    }, 16);
+  }
+  renderVals() {
+    const a = this.props.active || '';
+    const col = k => (a === k ? '#4F47A6' : '#221F35');
+    const glow = k => (a === k ? '0 0 12px rgba(108,99,196,.6), 0 0 26px rgba(108,99,196,.3)' : 'none');
+    return {
+      headerRef: this.headerRef,
+      spacerRef: this.spacerRef,
+      pillRef: this.pillRef,
+      brandRef: this.brandRef,
+      fadeRef: this.fadeRef,
+      scrolled: this.state.scrolled,
+      toTop: () => this._tweenTop(),
+      // the current page is marked by a glow, not an underline — an extra child
+      // made only the active link taller and pushed its text up
+      cHome: col('home'), gHome: glow('home'),
+      cWho: col('who'), gWho: glow('who'),
+      cHow: col('how'), gHow: glow('how'),
+      cStories: col('stories'), gStories: glow('stories'),
+      cMentors: col('mentors'), gMentors: glow('mentors'),
+      cAbout: col('about'), gAbout: glow('about'),
+    };
+  }
+}
+</script>
+</body>
+</html>
