@@ -46,7 +46,7 @@
 
     <div style="flex:2 1 460px;min-width:0;background:#FDFCFA;border:1px solid #DFDBF0;border-radius:26px;padding:44px 36px 40px;box-shadow:0 16px 44px rgba(34,31,53,.08)">
 
-      <sc-if value="{{ inForm }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ inForm }}" hint-placeholder-val="{{ true }}" data-form-fields>
         <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:34px">
           <div style="display:flex;gap:10px;align-items:center;justify-content:space-between">
             <div style="display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;font-size:13.5px">
@@ -174,7 +174,16 @@ class Component extends DCLogic {
       progress: s === 1 ? '33.33%' : s === 2 ? '66.66%' : '100%',
       next: () => { this.setState(st => ({ step: Math.min(3, st.step + 1) })); this._tweenTop(); },
       back: () => { this.setState(st => ({ step: Math.max(1, st.step - 1) })); this._tweenTop(); },
-      submit: () => { this.setState({ done: true }); this._tweenTop(); },
+      submit: () => {
+        const container = document.querySelector('[data-form-fields]');
+        if (container) {
+          const fields = window.DC.collectFormFields(container);
+          const checked = window.DC.collectCheckedLabels(container);
+          window.DC.mailtoSubmit('We Käre — Get Help submission', fields, checked);
+        }
+        this.setState({ done: true });
+        this._tweenTop();
+      },
     };
   }
 }
