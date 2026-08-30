@@ -64,11 +64,45 @@ def load_component(filename, class_name):
     src = read(filename)
     helmet = extract(r'<helmet>(.*?)</helmet>', src)
     body = extract(r'<x-dc>(.*?)</x-dc>', src)
+    # <helmet> is nested *inside* <x-dc> in the source, so the naive
+    # extraction above also captures it as body content — a second, live
+    # copy of every <link>/<style>/<script> in <head>, sitting in <body>
+    # where the browser executes it too. Strip it back out.
+    body = re.sub(r'<helmet>.*?</helmet>', '', body, flags=re.S)
     script = extract(
         r'<script type="text/x-dc" data-dc-script[^>]*>(.*?)</script>', src)
     script = re.sub(r'class\s+Component\s+extends\s+DCLogic',
                      'class %s extends DCLogic' % class_name, script, count=1)
     return helmet, body.strip(), script
+
+
+def make_stylesheets_nonblocking(helmet_html):
+    """
+    A <script> anywhere after a <link rel="stylesheet"> in the document is
+    held by the browser until that stylesheet finishes loading (so it can
+    guarantee an up-to-date CSSOM for any style query the script makes).
+    Our own runtime script sits after the Google Fonts / Phosphor-icons
+    links, so if either CDN is slow, blocked by a firewall or ad-blocker,
+    or just unreachable, the whole page would stay inert forever.
+
+    Rewrite those <link> tags to the standard non-blocking pattern: load
+    with low priority via media="print", then flip to media="all" once
+    loaded. A <noscript> fallback covers the (rare) no-JS case.
+    """
+    def repl(m):
+        tag = m.group(0)
+        href_m = re.search(r'href="([^"]*)"', tag)
+        if not href_m:
+            return tag
+        href = href_m.group(1)
+        async_tag = (
+            '<link rel="stylesheet" href="%s" media="print" '
+            'onload="this.media=\'all\'">' % href
+        )
+        fallback = '<noscript><link rel="stylesheet" href="%s"></noscript>' % href
+        return async_tag + '\n' + fallback
+
+    return re.sub(r'<link[^>]*rel="stylesheet"[^>]*>', repl, helmet_html)
 
 
 def dedupe_helmet_tags(helmet_html):
@@ -121,6 +155,7 @@ def build_page(filename, active, nav_helmet, nav_body, nav_script,
 
     merged_helmet = dedupe_helmet_tags(
         page_helmet + '\n' + '\n'.join(extra_helmet))
+    merged_helmet = make_stylesheets_nonblocking(merged_helmet)
 
     page_title = 'We Käre'
 
