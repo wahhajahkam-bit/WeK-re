@@ -214,10 +214,7 @@
   }
 
   // Where form submissions (Get Help, Become a Mentor) are sent.
-  // NOT FINALIZED — this address was never confirmed on the call and needs
-  // sourcing from We Käre before launch. Swap it here in one place once
-  // it's confirmed; everything below reads from this constant.
-  window.WEKARE_CONTACT_EMAIL = 'hello@wekare.org'; // TODO: confirm real inbox before going live
+  window.WEKARE_CONTACT_EMAIL = 'Ahkam.Khalid@Konsaldion.com';
 
   // Reads every labelled field inside `container` (skips checkboxes —
   // use collectCheckedLabels for those) using each <label>'s own text as
@@ -245,6 +242,23 @@
     return out;
   }
 
+  // Blocks progress until every required field inside `container` is
+  // filled in. Uses the browser's own HTML5 constraint validation (each
+  // control needs a `required` attribute), and surfaces the native
+  // validation bubble on the first empty one so it's obvious what's
+  // missing. Returns true only once everything required is filled.
+  function validateRequired(container) {
+    var controls = container.querySelectorAll('[required]');
+    for (var i = 0; i < controls.length; i++) {
+      if (!controls[i].checkValidity()) {
+        controls[i].reportValidity();
+        controls[i].focus();
+        return false;
+      }
+    }
+    return true;
+  }
+
   // Static pages can't send email server-side, so submissions go out as a
   // mailto: — it opens the visitor's own mail client with the submission
   // pre-filled, addressed to WEKARE_CONTACT_EMAIL, and they hit send.
@@ -263,6 +277,7 @@
     mount: mount,
     collectFormFields: collectFormFields,
     collectCheckedLabels: collectCheckedLabels,
-    mailtoSubmit: mailtoSubmit
+    mailtoSubmit: mailtoSubmit,
+    validateRequired: validateRequired
   };
 })();
