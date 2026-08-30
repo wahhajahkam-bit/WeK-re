@@ -157,11 +157,17 @@
           <sc-if value="{{ notLast }}" hint-placeholder-val="{{ true }}">
             <button type="button" onClick="{{ next }}" style="background:#6C63C4;color:#F7F5F0;border:none;padding:15px 30px;border-radius:999px;white-space:nowrap;font-size:16.5px;font-weight:500;display:inline-flex;align-items:center;gap:10px;cursor:pointer;box-shadow:0 6px 22px rgba(108,99,196,.3);transition:background .45s cubic-bezier(.33,.02,.3,1),transform .45s cubic-bezier(.33,.02,.3,1)" style-hover="background:#5A51B4;transform:translateY(-2px)">Continue <i class="ph ph-arrow-right" style="font-size:17px"></i></button>
           </sc-if>
-          <sc-if value="{{ isStep3 }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ isStep3Idle }}" hint-placeholder-val="{{ false }}">
             <button type="button" onClick="{{ submit }}" style="background:#6C63C4;color:#F7F5F0;border:none;padding:15px 30px;border-radius:999px;white-space:nowrap;font-size:16.5px;font-weight:500;display:inline-flex;align-items:center;gap:10px;cursor:pointer;box-shadow:0 6px 22px rgba(108,99,196,.3);transition:background .45s cubic-bezier(.33,.02,.3,1),transform .45s cubic-bezier(.33,.02,.3,1)" style-hover="background:#5A51B4;transform:translateY(-2px)">Send it <i class="ph ph-paper-plane-tilt" style="font-size:17px"></i></button>
+          </sc-if>
+          <sc-if value="{{ isSending }}" hint-placeholder-val="{{ false }}">
+            <button type="button" disabled style="background:#A79FE8;color:#F7F5F0;border:none;padding:15px 30px;border-radius:999px;white-space:nowrap;font-size:16.5px;font-weight:500;display:inline-flex;align-items:center;gap:10px;cursor:default">Sending…</button>
           </sc-if>
           <span style="font-size:14px;color:#8A85A0;margin-left:auto">Step {{ stepLabel }} of 3</span>
         </div>
+        <sc-if value="{{ sendError }}" hint-placeholder-val="{{ false }}">
+          <p style="margin:16px 0 0;font-size:14.5px;line-height:1.65;color:#B4483A">That didn't go through — check your connection and try again, or <a href="#" onClick="{{ retryByEmail }}" style="color:#4F47A6;text-decoration:underline">send it as an email instead</a>.</p>
+        </sc-if>
       </sc-if>
 
       <sc-if value="{{ done }}" hint-placeholder-val="{{ false }}">
@@ -231,7 +237,7 @@
 <script>
 
 class PageComponent extends DCLogic {
-  state = { step: 1, done: false };
+  state = { step: 1, done: false, sending: false, sendError: false };
   componentWillUnmount() { clearInterval(this._tw); }
   _tweenTop() {
     const el = document.scrollingElement || document.documentElement;
@@ -253,7 +259,10 @@ class PageComponent extends DCLogic {
       done: this.state.done,
       isStep1: s === 1, isStep2: s === 2, isStep3: s === 3,
       atLeast2: s >= 2, under2: s < 2, atLeast3: s >= 3, under3: s < 3,
-      canGoBack: s > 1, notLast: s < 3,
+      canGoBack: s > 1 && !this.state.sending, notLast: s < 3,
+      isStep3Idle: s === 3 && !this.state.sending,
+      isSending: s === 3 && this.state.sending,
+      sendError: this.state.sendError,
       stepLabel: String(s),
       progress: s === 1 ? '33.33%' : s === 2 ? '66.66%' : '100%',
       next: () => {
@@ -266,13 +275,21 @@ class PageComponent extends DCLogic {
         const stepEl = document.querySelector('[data-step="' + s + '"]');
         if (stepEl && !window.DC.validateRequired(stepEl)) return;
         const container = document.querySelector('[data-form-fields]');
-        if (container) {
-          const fields = window.DC.collectFormFields(container);
-          const checked = window.DC.collectCheckedLabels(container);
-          window.DC.mailtoSubmit('We Käre — Get Help submission', fields, checked);
-        }
-        this.setState({ done: true });
-        this._tweenTop();
+        if (!container) { this.setState({ done: true }); this._tweenTop(); return; }
+        const fields = window.DC.collectFormFields(container);
+        const checked = window.DC.collectCheckedLabels(container);
+        this.setState({ sending: true, sendError: false });
+        window.DC.submitStructuredEmail('We Käre — Get Help submission', fields, checked)
+          .then(() => { this.setState({ done: true, sending: false }); this._tweenTop(); })
+          .catch(() => { this.setState({ sending: false, sendError: true }); });
+      },
+      retryByEmail: (e) => {
+        if (e) e.preventDefault();
+        const container = document.querySelector('[data-form-fields]');
+        if (!container) return;
+        const fields = window.DC.collectFormFields(container);
+        const checked = window.DC.collectCheckedLabels(container);
+        window.DC.mailtoSubmit('We Käre — Get Help submission', fields, checked);
       },
     };
   }

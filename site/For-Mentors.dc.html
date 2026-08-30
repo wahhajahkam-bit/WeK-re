@@ -142,7 +142,15 @@
           <label style="display:flex;flex-direction:column;gap:8px;font-size:14.5px;color:#4A4560;grid-column:1/-1">How much time can you give?<select required style="border:1px solid #DFDBF0;background:#F7F5F0;border-radius:12px;padding:14px 16px;font-size:16px;color:#221F35;outline:none;transition:border-color .45s cubic-bezier(.33,.02,.3,1)" style-focus="border-color:#6C63C4"><option value="">Choose one…</option><option>A conversation a quarter</option><option>A conversation a month</option><option>A conversation a fortnight</option><option>Ad hoc, ask me when it comes up</option></select></label>
           <label style="display:flex;flex-direction:column;gap:8px;font-size:14.5px;color:#4A4560;grid-column:1/-1">Anything we should know<textarea rows="4" required placeholder="The kind of candidate you'd be most useful to, or anything else." style="border:1px solid #DFDBF0;background:#F7F5F0;border-radius:12px;padding:14px 16px;font-size:16px;color:#221F35;outline:none;resize:vertical;transition:border-color .45s cubic-bezier(.33,.02,.3,1)" style-focus="border-color:#6C63C4"></textarea></label>
         </div>
-        <button type="button" onClick="{{ send }}" style="margin-top:28px;background:#6C63C4;color:#F7F5F0;border:none;padding:16px 32px;border-radius:999px;white-space:nowrap;font-size:16.5px;font-weight:500;display:inline-flex;align-items:center;gap:10px;cursor:pointer;box-shadow:0 6px 22px rgba(108,99,196,.3);transition:background .45s cubic-bezier(.33,.02,.3,1),transform .45s cubic-bezier(.33,.02,.3,1)" style-hover="background:#5A51B4;transform:translateY(-2px)">Become a Mentor <i class="ph ph-arrow-right" style="font-size:17px"></i></button>
+        <sc-if value="{{ notSending }}" hint-placeholder-val="{{ true }}">
+          <button type="button" onClick="{{ send }}" style="margin-top:28px;background:#6C63C4;color:#F7F5F0;border:none;padding:16px 32px;border-radius:999px;white-space:nowrap;font-size:16.5px;font-weight:500;display:inline-flex;align-items:center;gap:10px;cursor:pointer;box-shadow:0 6px 22px rgba(108,99,196,.3);transition:background .45s cubic-bezier(.33,.02,.3,1),transform .45s cubic-bezier(.33,.02,.3,1)" style-hover="background:#5A51B4;transform:translateY(-2px)">Become a Mentor <i class="ph ph-arrow-right" style="font-size:17px"></i></button>
+        </sc-if>
+        <sc-if value="{{ sending }}" hint-placeholder-val="{{ false }}">
+          <button type="button" disabled style="margin-top:28px;background:#A79FE8;color:#F7F5F0;border:none;padding:16px 32px;border-radius:999px;white-space:nowrap;font-size:16.5px;font-weight:500;display:inline-flex;align-items:center;gap:10px;cursor:default">Sending…</button>
+        </sc-if>
+        <sc-if value="{{ sendError }}" hint-placeholder-val="{{ false }}">
+          <p style="margin:16px 0 0;font-size:14.5px;line-height:1.65;color:#B4483A">That didn't go through — check your connection and try again, or <a href="#" onClick="{{ retryByEmail }}" style="color:#4F47A6;text-decoration:underline">send it as an email instead</a>.</p>
+        </sc-if>
         <p style="margin:18px 0 0;font-size:14px;color:#8A85A0">We will come back to you within a few days to agree how and when you can help.</p>
       </sc-if>
       <sc-if value="{{ sent }}" hint-placeholder-val="{{ false }}">
@@ -162,7 +170,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { sent: false };
+  state = { sent: false, sending: false, sendError: false };
   componentDidMount() {
     this._reveal();
     this._t = setInterval(() => this._reveal(), 1200);
@@ -190,14 +198,24 @@ class Component extends DCLogic {
     return {
       sent: this.state.sent,
       notSent: !this.state.sent,
+      sending: this.state.sending,
+      notSending: !this.state.sending,
+      sendError: this.state.sendError,
       send: () => {
         const container = document.querySelector('[data-form-fields]');
-        if (container && !window.DC.validateRequired(container)) return;
-        if (container) {
-          const fields = window.DC.collectFormFields(container);
-          window.DC.mailtoSubmit('We Käre — Become a Mentor submission', fields, null);
-        }
-        this.setState({ sent: true });
+        if (!container || !window.DC.validateRequired(container)) return;
+        const fields = window.DC.collectFormFields(container);
+        this.setState({ sending: true, sendError: false });
+        window.DC.submitStructuredEmail('We Käre — Become a Mentor submission', fields, null)
+          .then(() => { this.setState({ sent: true, sending: false }); })
+          .catch(() => { this.setState({ sending: false, sendError: true }); });
+      },
+      retryByEmail: (e) => {
+        if (e) e.preventDefault();
+        const container = document.querySelector('[data-form-fields]');
+        if (!container) return;
+        const fields = window.DC.collectFormFields(container);
+        window.DC.mailtoSubmit('We Käre — Become a Mentor submission', fields, null);
       },
     };
   }

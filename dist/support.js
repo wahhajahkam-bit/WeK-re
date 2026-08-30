@@ -259,9 +259,9 @@
     return true;
   }
 
-  // Static pages can't send email server-side, so submissions go out as a
-  // mailto: — it opens the visitor's own mail client with the submission
-  // pre-filled, addressed to WEKARE_CONTACT_EMAIL, and they hit send.
+  // Last-resort fallback if the real send (below) fails outright — e.g. the
+  // visitor is offline. Opens their own mail client with everything
+  // pre-filled; not used in the normal path.
   function mailtoSubmit(subject, fields, checkedLabels) {
     var lines = fields.map(function (f) { return f.field + ': ' + (f.value || '—'); });
     if (checkedLabels && checkedLabels.length) {
@@ -273,11 +273,45 @@
     window.location.href = url;
   }
 
+  // The real send: a static site has no server of its own, so this posts
+  // straight to FormSubmit (https://formsubmit.co) — a no-account,
+  // no-dashboard relay that turns a POST into a structured email sent to
+  // WEKARE_CONTACT_EMAIL. The visitor is never the sender or a recipient;
+  // their details are just fields in the body. FormSubmit emails
+  // WEKARE_CONTACT_EMAIL once, the very first time, asking it to confirm
+  // ("Activate Form") — every submission after that click goes straight
+  // through with no further action from anyone.
+  //
+  // Returns a Promise: resolves once FormSubmit accepts the request,
+  // rejects on a network failure or a non-2xx response (offline, the
+  // inbox not yet activated, etc.) so callers can fall back to mailtoSubmit
+  // rather than silently losing the submission.
+  function submitStructuredEmail(subject, fields, checkedLabels) {
+    var payload = {
+      _subject: subject,
+      _template: 'table',
+      _captcha: 'false'
+    };
+    fields.forEach(function (f) { payload[f.field] = f.value || '—'; });
+    if (checkedLabels && checkedLabels.length) payload['Selected'] = checkedLabels.join('; ');
+
+    var endpoint = 'https://formsubmit.co/ajax/' + encodeURIComponent(window.WEKARE_CONTACT_EMAIL);
+    return fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function (res) {
+      if (!res.ok) throw new Error('FormSubmit responded with ' + res.status);
+      return res;
+    });
+  }
+
   window.DC = {
     mount: mount,
     collectFormFields: collectFormFields,
     collectCheckedLabels: collectCheckedLabels,
     mailtoSubmit: mailtoSubmit,
+    submitStructuredEmail: submitStructuredEmail,
     validateRequired: validateRequired
   };
 })();
