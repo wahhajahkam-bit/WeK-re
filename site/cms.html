@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>We Käre — Photo CMS</title>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,400;0,500&family=Ubuntu+Sans:ital,wght@0,300..700&display=swap" rel="stylesheet">
+<style>
+  :root{color-scheme:light}
+  body{margin:0;background:#F7F5F0;color:#221F35;font-family:'Ubuntu Sans',system-ui,sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:48px 24px 96px}
+  h1{font-family:Ubuntu,serif;font-weight:400;font-size:28px;margin:0 0 6px}
+  p.lead{color:#6b6580;margin:0 0 32px}
+  .card{background:#fff;border:1px solid #E7E3F5;border-radius:16px;padding:28px;margin-bottom:24px}
+  label{display:block;font-size:13px;color:#6b6580;margin-bottom:6px}
+  input[type=password]{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:10px;border:1px solid #DCD7EE;font-size:15px}
+  button{cursor:pointer;border:none;border-radius:999px;padding:12px 22px;font-size:15px;font-weight:500;background:#6C63C4;color:#fff;transition:background .3s}
+  button:hover{background:#7F76D6}
+  button:disabled{background:#B7B2D9;cursor:not-allowed}
+  .error{color:#B3261E;font-size:14px;margin-top:10px}
+  .ok{color:#1E7A4C;font-size:14px;margin-top:10px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+  .slot{border:1px solid #E7E3F5;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+  .slot img, .slot .empty{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:10px;background:#EBE9F5}
+  .slot .empty{display:flex;align-items:center;justify-content:center;color:#8A85A0;font-size:13px;text-align:center;padding:8px}
+  .slot .name{font-size:13.5px;font-weight:500}
+  .slot .id{font-size:11px;color:#8A85A0;font-family:monospace}
+  .slot input[type=file]{font-size:12.5px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .topbar button{background:transparent;color:#6C63C4;border:1px solid #DCD7EE;padding:8px 16px}
+  .topbar button:hover{background:#EBE9F5}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>We Käre — Photo CMS</h1>
+  <p class="lead">Upload real photos directly to the live site. Each slot below maps to one image placeholder on wekare-eight.vercel.app.</p>
+
+  <div class="card" id="login-card">
+    <label for="pw">Admin password</label>
+    <input type="password" id="pw" autocomplete="current-password" placeholder="••••••••">
+    <div style="margin-top:14px"><button id="login-btn">Log in</button></div>
+    <div class="error" id="login-error" hidden></div>
+  </div>
+
+  <div id="app" hidden>
+    <div class="topbar">
+      <span style="font-size:13px;color:#6b6580">Signed in — session lasts 4 hours.</span>
+      <button id="logout-btn">Log out</button>
+    </div>
+    <div class="grid" id="slots"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var SLOTS = [
+    { id: 'who-1', name: 'Who We Help — career changer' },
+    { id: 'who-2', name: 'Who We Help — returning after a gap' },
+    { id: 'who-3', name: 'Who We Help — new to the region' },
+    { id: 'who-4', name: 'Who We Help — experienced job seeker' },
+    { id: 'who-5', name: 'Who We Help — recent graduate' },
+    { id: 'team-1', name: 'About Us — team member 1' },
+    { id: 'team-2', name: 'About Us — team member 2' },
+    { id: 'team-3', name: 'About Us — team member 3' },
+    { id: 'team-4', name: 'About Us — team member 4' },
+    { id: 'mentor-hero', name: 'For Mentors — hero image' },
+    { id: 'home-story-1', name: 'Home — testimonial 1' },
+    { id: 'home-story-2', name: 'Home — testimonial 2' },
+    { id: 'story-1', name: 'Success Stories — photo 1' },
+    { id: 'story-2', name: 'Success Stories — photo 2' },
+    { id: 'story-3', name: 'Success Stories — photo 3' },
+    { id: 'story-4', name: 'Success Stories — photo 4' },
+    { id: 'story-5', name: 'Success Stories — photo 5' },
+    { id: 'story-6', name: 'Success Stories — photo 6' },
+  ];
+
+  var TOKEN_KEY = 'wekare_cms_token';
+  var loginCard = document.getElementById('login-card');
+  var app = document.getElementById('app');
+  var pwInput = document.getElementById('pw');
+  var loginBtn = document.getElementById('login-btn');
+  var loginError = document.getElementById('login-error');
+  var logoutBtn = document.getElementById('logout-btn');
+  var slotsEl = document.getElementById('slots');
+
+  function getToken() {
+    try { return sessionStorage.getItem(TOKEN_KEY); } catch (e) { return null; }
+  }
+  function setToken(t) {
+    try { t ? sessionStorage.setItem(TOKEN_KEY, t) : sessionStorage.removeItem(TOKEN_KEY); } catch (e) {}
+  }
+
+  function showApp() {
+    loginCard.hidden = true;
+    app.hidden = false;
+    renderSlots();
+  }
+  function showLogin() {
+    setToken(null);
+    loginCard.hidden = false;
+    app.hidden = true;
+  }
+
+  loginBtn.addEventListener('click', function () { attemptLogin(); });
+  pwInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') attemptLogin(); });
+  logoutBtn.addEventListener('click', showLogin);
+
+  function attemptLogin() {
+    loginError.hidden = true;
+    loginBtn.disabled = true;
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ password: pwInput.value }),
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        loginBtn.disabled = false;
+        if (!res.ok) {
+          loginError.textContent = res.d.error || 'login failed';
+          loginError.hidden = false;
+          return;
+        }
+        setToken(res.d.token);
+        pwInput.value = '';
+        showApp();
+      })
+      .catch(function () {
+        loginBtn.disabled = false;
+        loginError.textContent = 'network error, try again';
+        loginError.hidden = false;
+      });
+  }
+
+  function renderSlots() {
+    slotsEl.innerHTML = '';
+    fetch('/api/manifest', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : {}; })
+      .catch(function () { return {}; })
+      .then(function (manifest) {
+        SLOTS.forEach(function (slot) { slotsEl.appendChild(buildSlotCard(slot, manifest[slot.id])); });
+      });
+  }
+
+  function buildSlotCard(slot, currentUrl) {
+    var card = document.createElement('div');
+    card.className = 'slot';
+
+    var preview = document.createElement(currentUrl ? 'img' : 'div');
+    if (currentUrl) {
+      preview.src = currentUrl;
+    } else {
+      preview.className = 'empty';
+      preview.textContent = 'No photo yet';
+    }
+
+    var name = document.createElement('div');
+    name.className = 'name';
+    name.textContent = slot.name;
+
+    var id = document.createElement('div');
+    id.className = 'id';
+    id.textContent = slot.id;
+
+    var file = document.createElement('input');
+    file.type = 'file';
+    file.accept = 'image/png,image/jpeg,image/webp';
+
+    var status = document.createElement('div');
+    status.style.fontSize = '12.5px';
+
+    file.addEventListener('change', function () {
+      var f = file.files && file.files[0];
+      if (!f) return;
+      status.textContent = 'Uploading…';
+      status.style.color = '#6b6580';
+      var token = getToken();
+      if (!token) { showLogin(); return; }
+      fetch('/api/upload?slot=' + encodeURIComponent(slot.id), {
+        method: 'POST',
+        headers: { 'content-type': f.type, 'authorization': 'Bearer ' + token },
+        body: f,
+      })
+        .then(function (r) {
+          if (r.status === 401) { showLogin(); throw new Error('session expired, please log in again'); }
+          return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+        })
+        .then(function (res) {
+          if (!res.ok) throw new Error(res.d.error || 'upload failed');
+          status.textContent = 'Uploaded ✓';
+          status.style.color = '#1E7A4C';
+          if (preview.tagName === 'IMG') {
+            preview.src = res.d.url;
+          } else {
+            var img = document.createElement('img');
+            img.src = res.d.url;
+            preview.replaceWith(img);
+            preview = img;
+          }
+        })
+        .catch(function (err) {
+          status.textContent = err.message || 'upload failed';
+          status.style.color = '#B3261E';
+        });
+    });
+
+    card.appendChild(preview);
+    card.appendChild(name);
+    card.appendChild(id);
+    card.appendChild(file);
+    card.appendChild(status);
+    return card;
+  }
+
+  if (getToken()) { showApp(); } else { showLogin(); }
+})();
+</script>
+</body>
+</html>

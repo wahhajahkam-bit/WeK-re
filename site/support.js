@@ -195,15 +195,23 @@
     return inst;
   }
 
+  // Fetched once per page load; the CMS (cms.html) writes to this manifest
+  // via /api/upload, and every <image-slot id="..."> below checks it so an
+  // uploaded photo replaces the placeholder without a rebuild/redeploy.
+  var wekareManifestPromise = fetch('/api/manifest', { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .catch(function () { return {}; });
+
   // Lightweight stand-in for the design-tool's <image-slot> — a plain,
-  // clearly-labelled placeholder box, since real photography has to be
-  // supplied by a person, not fabricated.
+  // clearly-labelled placeholder box until a real photo is uploaded via
+  // the CMS (site/cms.html), at which point it shows that photo instead.
   if (!customElements.get('image-slot')) {
     customElements.define('image-slot', class extends HTMLElement {
       connectedCallback() {
         var shape = this.getAttribute('shape') || 'rounded';
         var radius = this.getAttribute('radius') || '12';
         var placeholder = this.getAttribute('placeholder') || 'Image';
+        var slotId = this.id;
         this.style.display = 'flex';
         this.style.width = this.style.width || '100%';
         this.style.height = this.style.height || '100%';
@@ -220,6 +228,19 @@
         span.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:6px;opacity:.85;padding:12px;font-size:12.5px;line-height:1.4';
         span.innerHTML = '<i class="ph ph-image" style="font-size:22px"></i><span>' + placeholder.replace(/</g, '&lt;') + '</span>';
         this.appendChild(span);
+
+        if (slotId) {
+          wekareManifestPromise.then(function (manifest) {
+            var url = manifest && manifest[slotId];
+            if (!url) return;
+            var img = document.createElement('img');
+            img.src = url;
+            img.alt = placeholder;
+            img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block';
+            this.textContent = '';
+            this.appendChild(img);
+          }.bind(this));
+        }
       }
     });
   }
@@ -325,4 +346,122 @@
     submitStructuredEmail: submitStructuredEmail,
     validateRequired: validateRequired
   };
+
+  // Floating "Ask We Käre" chat widget, present on every page. Talks to
+  // /api/chat, which proxies to the Anthropic API server-side so no key is
+  // ever exposed to the browser.
+  function initChatWidget() {
+    var toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.setAttribute('aria-label', 'Chat with We Käre');
+    toggle.innerHTML = '<i class="ph ph-chat-circle-dots" style="font-size:26px"></i>';
+    toggle.style.cssText = 'position:fixed;right:22px;bottom:22px;width:58px;height:58px;border-radius:50%;' +
+      'background:#6C63C4;color:#fff;border:none;display:flex;align-items:center;justify-content:center;' +
+      'box-shadow:0 8px 24px rgba(34,31,53,.28);cursor:pointer;z-index:9999;transition:background .3s,transform .2s';
+    toggle.onmouseenter = function () { toggle.style.background = '#7F76D6'; };
+    toggle.onmouseleave = function () { toggle.style.background = '#6C63C4'; };
+
+    var panel = document.createElement('div');
+    panel.style.cssText = 'position:fixed;right:22px;bottom:90px;width:min(360px,calc(100vw - 44px));' +
+      'height:min(480px,calc(100vh - 140px));background:#fff;border-radius:18px;box-shadow:0 20px 60px rgba(34,31,53,.35);' +
+      'display:none;flex-direction:column;overflow:hidden;z-index:9999;font-family:\'Ubuntu Sans\',system-ui,sans-serif';
+
+    var header = document.createElement('div');
+    header.style.cssText = 'background:#221F35;color:#F7F5F0;padding:14px 18px;font-size:15px;font-weight:500;' +
+      'display:flex;align-items:center;justify-content:space-between';
+    header.innerHTML = '<span>Ask We Käre</span>';
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.setAttribute('aria-label', 'Close chat');
+    closeBtn.innerHTML = '<i class="ph ph-x"></i>';
+    closeBtn.style.cssText = 'background:none;border:none;color:#BFBAD6;font-size:17px;cursor:pointer;padding:4px';
+    header.appendChild(closeBtn);
+
+    var log = document.createElement('div');
+    log.style.cssText = 'flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#F7F5F0';
+
+    var form = document.createElement('form');
+    form.style.cssText = 'display:flex;gap:8px;padding:12px;border-top:1px solid #EBE9F5;background:#fff';
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Ask a question…';
+    input.style.cssText = 'flex:1;border:1px solid #DCD7EE;border-radius:999px;padding:10px 14px;font-size:14.5px;min-width:0';
+    var sendBtn = document.createElement('button');
+    sendBtn.type = 'submit';
+    sendBtn.innerHTML = '<i class="ph ph-paper-plane-tilt"></i>';
+    sendBtn.style.cssText = 'background:#6C63C4;color:#fff;border:none;border-radius:999px;width:40px;height:40px;' +
+      'flex:0 0 auto;cursor:pointer;font-size:16px';
+    form.appendChild(input);
+    form.appendChild(sendBtn);
+
+    panel.appendChild(header);
+    panel.appendChild(log);
+    panel.appendChild(form);
+    document.body.appendChild(toggle);
+    document.body.appendChild(panel);
+
+    var history = [];
+    var open = false;
+
+    function addBubble(role, text) {
+      var bubble = document.createElement('div');
+      var isUser = role === 'user';
+      bubble.textContent = text;
+      bubble.style.cssText = 'max-width:82%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.5;' +
+        'white-space:pre-wrap;' + (isUser
+          ? 'align-self:flex-end;background:#6C63C4;color:#fff;border-bottom-right-radius:4px'
+          : 'align-self:flex-start;background:#EBE9F5;color:#221F35;border-bottom-left-radius:4px');
+      log.appendChild(bubble);
+      log.scrollTop = log.scrollHeight;
+      return bubble;
+    }
+
+    var greeted = false;
+    function setOpen(next) {
+      open = next;
+      panel.style.display = open ? 'flex' : 'none';
+      if (open && !greeted) {
+        greeted = true;
+        addBubble('assistant', "Hi! I'm here to answer questions about We Käre — who we help, how it works, or how to get started. What would you like to know?");
+      }
+      if (open) input.focus();
+    }
+
+    toggle.addEventListener('click', function () { setOpen(!open); });
+    closeBtn.addEventListener('click', function () { setOpen(false); });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      addBubble('user', text);
+      history.push({ role: 'user', content: text });
+      sendBtn.disabled = true;
+      var thinking = addBubble('assistant', '…');
+
+      fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ messages: history })
+      })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          sendBtn.disabled = false;
+          var reply = res.ok ? res.d.reply : (res.d && res.d.error) || 'Something went wrong — please try again.';
+          thinking.textContent = reply;
+          history.push({ role: 'assistant', content: reply });
+        })
+        .catch(function () {
+          sendBtn.disabled = false;
+          thinking.textContent = "Couldn't reach the chat right now — please try again in a moment.";
+        });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initChatWidget);
+  } else {
+    initChatWidget();
+  }
 })();
