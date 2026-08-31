@@ -21,6 +21,7 @@ About-Us, Success-Stories, For-Mentors):
 
 Run: python3 build.py
 """
+import hashlib
 import os
 import re
 import shutil
@@ -146,8 +147,17 @@ def inline_imports(body, nav_helmet, nav_body, nav_script,
     return body, mount_calls, extra_helmet
 
 
+def support_js_version():
+    """Short content hash of support.js, used to cache-bust the <script src>
+    so a fix to the runtime can't get stuck behind a stale cached copy in
+    a visitor's browser or Vercel's CDN — the URL only changes when the
+    file's actual content changes."""
+    data = open(os.path.join(SITE, 'support.js'), 'rb').read()
+    return hashlib.sha256(data).hexdigest()[:10]
+
+
 def build_page(filename, active, nav_helmet, nav_body, nav_script,
-               footer_helmet, footer_body, footer_script):
+               footer_helmet, footer_body, footer_script, support_version):
     page_helmet, page_body, page_script = load_component(filename, 'PageComponent')
     page_body, mount_calls, extra_helmet = inline_imports(
         page_body, nav_helmet, nav_body, nav_script,
@@ -172,7 +182,7 @@ def build_page(filename, active, nav_helmet, nav_body, nav_script,
     html.append('<div id="page-root">')
     html.append(page_body)
     html.append('</div>')
-    html.append('<script src="support.js"></script>')
+    html.append('<script src="support.js?v=%s"></script>' % support_version)
     html.append('<script>')
     html.append(page_script)
     html.append(nav_script)
@@ -192,10 +202,11 @@ def main():
 
     nav_helmet, nav_body, nav_script = load_component('Nav.dc.html', 'NavComponent')
     footer_helmet, footer_body, footer_script = load_component('Footer.dc.html', 'FooterComponent')
+    support_version = support_js_version()
 
     for filename, active in LEAF_PAGES:
         out = build_page(filename, active, nav_helmet, nav_body, nav_script,
-                          footer_helmet, footer_body, footer_script)
+                          footer_helmet, footer_body, footer_script, support_version)
         out_path = os.path.join(DIST, filename)
         with open(out_path, 'w', encoding='utf-8') as f:
             f.write(out)

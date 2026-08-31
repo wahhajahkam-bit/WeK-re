@@ -43,13 +43,6 @@
     return out;
   }
 
-  function applyStyleString(el, str) {
-    var decls = parseStyleString(str);
-    for (var k in decls) {
-      try { el.style.setProperty(k, decls[k]); } catch (e) {}
-    }
-  }
-
   // Base class every page/component's `Component` extends.
   window.DCLogic = function (props) {
     this.props = props || {};
@@ -160,9 +153,18 @@
       // all, so re-applying only the base's own keys leaves those stuck
       // forever after the first hover. Explicitly clear every key the
       // hover/focus style touches, then layer the base back on top.
+      //
+      // Critically, "the base" must come from `b.base` — the object
+      // captured once at mount time — and NOT from re-reading
+      // `el.getAttribute('style')` here. The style attribute and the
+      // live `el.style` CSSOM are the same underlying data, so by the
+      // time this runs our own removeProperty() calls just above have
+      // already mutated that very attribute; reading it back returns
+      // whatever's left over from the mutation, not the original values
+      // (e.g. "background" removed, then never re-applied at all).
       var reset = function (introduced) {
         for (var k in introduced) b.el.style.removeProperty(k);
-        applyStyleString(b.el, b.el.getAttribute('style') || '');
+        for (var k in b.base) b.el.style.setProperty(k, b.base[k]);
       };
       if (b.hover) {
         b.el.addEventListener('mouseenter', function () { for (var k in b.hover) b.el.style.setProperty(k, b.hover[k]); });
