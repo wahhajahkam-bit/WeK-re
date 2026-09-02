@@ -68,51 +68,60 @@ function readRawBody(req, maxBytes) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'method not allowed' });
-    return;
+  try {
+    if (req.method !== 'POST') {
+      res.status(405).json({ error: 'method not allowed' });
+      return;
+    }
+
+    if (!verifyToken(bearerToken(req))) {
+      res.status(401).json({ error: 'unauthorized' });
+      return;
+    }
+
+    const slot = (req.query.slot || '').toString();
+    if (!isAllowedSlot(slot)) {
+      res.status(400).json({ error: 'unknown slot' });
+      return;
+    }
+
+    const contentType = (req.headers['content-type'] || '').split(';')[0].trim();
+    const ext = ALLOWED_TYPES[contentType];
+    if (!ext) {
+      res.status(400).json({ error: 'unsupported image type (use PNG, JPEG, or WebP)' });
+      return;
+    }
+
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      res.status(500).json({ error: 'Blob storage is not connected to this project yet (missing BLOB_READ_WRITE_TOKEN)' });
+      return;
+    }
+
+    const buffer = await readRawBody(req, MAX_BYTES);
+    if (buffer === null) {
+      res.status(413).json({ error: 'image too large (max 8MB)' });
+      return;
+    }
+    if (!buffer.length) {
+      res.status(400).json({ error: 'empty upload' });
+      return;
+    }
+
+    const blob = await put(`images/${slot}.${ext}`, buffer, {
+      access: 'public',
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      contentType,
+    });
+
+    const manifest = await getManifest();
+    manifest[slot] = `${blob.url}?v=${Date.now()}`;
+    await saveManifest(manifest);
+
+    res.status(200).json({ url: manifest[slot], slot });
+  } catch (err) {
+    res.status(500).json({ error: 'upload failed: ' + (err && err.message ? err.message : String(err)) });
   }
-
-  if (!verifyToken(bearerToken(req))) {
-    res.status(401).json({ error: 'unauthorized' });
-    return;
-  }
-
-  const slot = (req.query.slot || '').toString();
-  if (!isAllowedSlot(slot)) {
-    res.status(400).json({ error: 'unknown slot' });
-    return;
-  }
-
-  const contentType = (req.headers['content-type'] || '').split(';')[0].trim();
-  const ext = ALLOWED_TYPES[contentType];
-  if (!ext) {
-    res.status(400).json({ error: 'unsupported image type (use PNG, JPEG, or WebP)' });
-    return;
-  }
-
-  const buffer = await readRawBody(req, MAX_BYTES);
-  if (buffer === null) {
-    res.status(413).json({ error: 'image too large (max 8MB)' });
-    return;
-  }
-  if (!buffer.length) {
-    res.status(400).json({ error: 'empty upload' });
-    return;
-  }
-
-  const blob = await put(`images/${slot}.${ext}`, buffer, {
-    access: 'public',
-    addRandomSuffix: false,
-    allowOverwrite: true,
-    contentType,
-  });
-
-  const manifest = await getManifest();
-  manifest[slot] = `${blob.url}?v=${Date.now()}`;
-  await saveManifest(manifest);
-
-  res.status(200).json({ url: manifest[slot], slot });
 }
 
 export const config = {

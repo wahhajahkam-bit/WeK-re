@@ -77,43 +77,51 @@ function sanitizeStory(s) {
 }
 
 export default async function handler(req, res) {
-  if (req.method === 'GET') {
-    const stories = await readStories();
-    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
-    res.status(200).json({ stories });
-    return;
-  }
+  try {
+    if (req.method === 'GET') {
+      const stories = await readStories();
+      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+      res.status(200).json({ stories });
+      return;
+    }
 
-  if (req.method === 'POST') {
-    if (!verifyToken(bearerToken(req))) {
-      res.status(401).json({ error: 'unauthorized' });
-      return;
-    }
-    const body = req.body || {};
-    const incoming = Array.isArray(body.stories) ? body.stories : null;
-    if (!incoming) {
-      res.status(400).json({ error: 'stories array required' });
-      return;
-    }
-    if (incoming.length > 60) {
-      res.status(400).json({ error: 'too many stories (max 60)' });
-      return;
-    }
-    const clean = [];
-    for (const raw of incoming) {
-      const s = sanitizeStory(raw);
-      if (!s) {
-        res.status(400).json({ error: 'invalid story id: ' + JSON.stringify(raw && raw.id) });
+    if (req.method === 'POST') {
+      if (!verifyToken(bearerToken(req))) {
+        res.status(401).json({ error: 'unauthorized' });
         return;
       }
-      clean.push(s);
+      if (!process.env.BLOB_READ_WRITE_TOKEN) {
+        res.status(500).json({ error: 'Blob storage is not connected to this project yet (missing BLOB_READ_WRITE_TOKEN)' });
+        return;
+      }
+      const body = req.body || {};
+      const incoming = Array.isArray(body.stories) ? body.stories : null;
+      if (!incoming) {
+        res.status(400).json({ error: 'stories array required' });
+        return;
+      }
+      if (incoming.length > 60) {
+        res.status(400).json({ error: 'too many stories (max 60)' });
+        return;
+      }
+      const clean = [];
+      for (const raw of incoming) {
+        const s = sanitizeStory(raw);
+        if (!s) {
+          res.status(400).json({ error: 'invalid story id: ' + JSON.stringify(raw && raw.id) });
+          return;
+        }
+        clean.push(s);
+      }
+      await writeStories(clean);
+      res.status(200).json({ stories: clean });
+      return;
     }
-    await writeStories(clean);
-    res.status(200).json({ stories: clean });
-    return;
-  }
 
-  res.status(405).json({ error: 'method not allowed' });
+    res.status(405).json({ error: 'method not allowed' });
+  } catch (err) {
+    res.status(500).json({ error: 'request failed: ' + (err && err.message ? err.message : String(err)) });
+  }
 }
 
 export const config = {
