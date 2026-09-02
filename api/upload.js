@@ -6,8 +6,15 @@ const ALLOWED_SLOTS = new Set([
   'team-1', 'team-2', 'team-3', 'team-4',
   'mentor-hero',
   'home-story-1', 'home-story-2',
-  'story-1', 'story-2', 'story-3', 'story-4', 'story-5', 'story-6',
 ]);
+
+// Success Stories photos aren't fixed slots — stories can be added/removed
+// from the CMS, each with its own generated id — so their upload slot is
+// "story-photo-<story id>" instead of a name in ALLOWED_SLOTS above.
+const STORY_PHOTO_RE = /^story-photo-[a-z0-9-]{1,60}$/i;
+function isAllowedSlot(slot) {
+  return ALLOWED_SLOTS.has(slot) || STORY_PHOTO_RE.test(slot);
+}
 
 const ALLOWED_TYPES = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' };
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -45,7 +52,7 @@ export default async function handler(req, res) {
   }
 
   const slot = (req.query.slot || '').toString();
-  if (!ALLOWED_SLOTS.has(slot)) {
+  if (!isAllowedSlot(slot)) {
     res.status(400).json({ error: 'unknown slot' });
     return;
   }

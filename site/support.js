@@ -195,6 +195,40 @@
     return inst;
   }
 
+  // Wires up style-hover/style-focus on any subtree, independent of mount()
+  // — for markup built dynamically after the initial mount (e.g. the
+  // Success Stories cards, rendered from /api/stories once it loads).
+  // Mirrors the hover-binding branch inside mount() above, including the
+  // same fix: reset from the captured `base` object, never by re-reading
+  // the (already-mutated) style attribute.
+  function bindHoverStyles(root) {
+    var els = root.querySelectorAll('[style-hover],[style-focus]');
+    Array.prototype.forEach.call(els, function (el) {
+      var baseStyle = el.getAttribute('style');
+      var hoverStyle = el.getAttribute('style-hover');
+      var focusStyle = el.getAttribute('style-focus');
+      var b = {
+        base: baseStyle ? parseStyleString(baseStyle) : {},
+        hover: hoverStyle ? parseStyleString(hoverStyle) : null,
+        focus: focusStyle ? parseStyleString(focusStyle) : null
+      };
+      el.removeAttribute('style-hover');
+      el.removeAttribute('style-focus');
+      var reset = function (introduced) {
+        for (var k in introduced) el.style.removeProperty(k);
+        for (var k in b.base) el.style.setProperty(k, b.base[k]);
+      };
+      if (b.hover) {
+        el.addEventListener('mouseenter', function () { for (var k in b.hover) el.style.setProperty(k, b.hover[k]); });
+        el.addEventListener('mouseleave', function () { reset(b.hover); });
+      }
+      if (b.focus) {
+        el.addEventListener('focus', function () { for (var k in b.focus) el.style.setProperty(k, b.focus[k]); });
+        el.addEventListener('blur', function () { reset(b.focus); });
+      }
+    });
+  }
+
   // Fetched once per page load; the CMS (cms.html) writes to this manifest
   // via /api/upload, and every <image-slot id="..."> below checks it so an
   // uploaded photo replaces the placeholder without a rebuild/redeploy.
@@ -344,7 +378,8 @@
     collectCheckedLabels: collectCheckedLabels,
     mailtoSubmit: mailtoSubmit,
     submitStructuredEmail: submitStructuredEmail,
-    validateRequired: validateRequired
+    validateRequired: validateRequired,
+    bindHoverStyles: bindHoverStyles
   };
 
   // Floating "Ask We Käre" chat widget, present on every page. Talks to

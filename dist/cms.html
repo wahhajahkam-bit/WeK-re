@@ -30,6 +30,17 @@
   .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
   .topbar button{background:transparent;color:#6C63C4;border:1px solid #DCD7EE;padding:8px 16px}
   .topbar button:hover{background:#EBE9F5}
+  #add-story-btn, #save-stories-btn{background:#6C63C4;color:#fff}
+  #add-story-btn:hover, #save-stories-btn:hover{background:#7F76D6}
+  .story-card{border:1px solid #E7E3F5;border-radius:14px;padding:20px;display:flex;gap:20px;flex-wrap:wrap}
+  .story-card .story-photo{flex:0 0 160px}
+  .story-card .story-photo img, .story-card .story-photo .empty{width:160px;height:160px;object-fit:cover;border-radius:10px;background:#EBE9F5;display:flex;align-items:center;justify-content:center;color:#8A85A0;font-size:12.5px;text-align:center}
+  .story-card .story-fields{flex:1 1 320px;display:flex;flex-direction:column;gap:10px}
+  .story-card label{margin-bottom:0}
+  .story-card input[type=text], .story-card textarea{width:100%;box-sizing:border-box;padding:9px 12px;border-radius:8px;border:1px solid #DCD7EE;font-size:14px;font-family:inherit;resize:vertical}
+  .story-card .row-label{font-size:12px;color:#8A85A0;margin-bottom:3px;display:block}
+  .story-card .delete-story{align-self:flex-start;background:transparent;color:#B3261E;border:1px solid #F0C9C6;padding:8px 14px}
+  .story-card .delete-story:hover{background:#FBEAE9}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -51,6 +62,18 @@
       <button id="logout-btn">Log out</button>
     </div>
     <div class="grid" id="slots"></div>
+
+    <div class="card" style="margin-top:32px">
+      <div class="topbar" style="margin-bottom:18px">
+        <h2 style="font-family:Ubuntu,serif;font-weight:400;font-size:20px;margin:0">Success Stories</h2>
+        <button id="add-story-btn" type="button">+ Add story</button>
+      </div>
+      <div id="stories-list" style="display:flex;flex-direction:column;gap:20px"></div>
+      <div style="margin-top:22px;display:flex;align-items:center;gap:14px">
+        <button id="save-stories-btn" type="button">Save all changes</button>
+        <span id="stories-status" style="font-size:13.5px"></span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -69,12 +92,6 @@
     { id: 'mentor-hero', name: 'For Mentors — hero image' },
     { id: 'home-story-1', name: 'Home — testimonial 1' },
     { id: 'home-story-2', name: 'Home — testimonial 2' },
-    { id: 'story-1', name: 'Success Stories — photo 1' },
-    { id: 'story-2', name: 'Success Stories — photo 2' },
-    { id: 'story-3', name: 'Success Stories — photo 3' },
-    { id: 'story-4', name: 'Success Stories — photo 4' },
-    { id: 'story-5', name: 'Success Stories — photo 5' },
-    { id: 'story-6', name: 'Success Stories — photo 6' },
   ];
 
   var TOKEN_KEY = 'wekare_cms_token';
@@ -97,6 +114,7 @@
     loginCard.hidden = true;
     app.hidden = false;
     renderSlots();
+    loadStories();
   }
   function showLogin() {
     setToken(null);
@@ -214,6 +232,145 @@
     card.appendChild(status);
     return card;
   }
+
+  // --- Success Stories management ---------------------------------------
+  var STORY_FIELDS = [
+    { key: 'category', label: 'Category tag', input: 'text' },
+    { key: 'who', label: 'Who they were', input: 'textarea' },
+    { key: 'struggle', label: 'The struggle', input: 'textarea' },
+    { key: 'did', label: 'What we did', input: 'textarea' },
+    { key: 'now', label: 'Where they are now', input: 'textarea' },
+  ];
+  var storiesState = [];
+  var storiesStatusEl = document.getElementById('stories-status');
+  var storiesListEl = document.getElementById('stories-list');
+
+  function loadStories() {
+    fetch('/api/stories', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : { stories: [] }; })
+      .then(function (d) { storiesState = d.stories || []; renderStories(); })
+      .catch(function () { storiesState = []; renderStories(); });
+  }
+
+  function renderStories() {
+    storiesListEl.innerHTML = '';
+    storiesState.forEach(function (story, idx) { storiesListEl.appendChild(buildStoryCard(story, idx)); });
+  }
+
+  function buildStoryCard(story, idx) {
+    var card = document.createElement('div');
+    card.className = 'story-card';
+
+    var photoWrap = document.createElement('div');
+    photoWrap.className = 'story-photo';
+    var preview = document.createElement(story.photo ? 'img' : 'div');
+    if (story.photo) { preview.src = story.photo; }
+    else { preview.className = 'empty'; preview.textContent = 'No photo yet'; }
+    var photoFile = document.createElement('input');
+    photoFile.type = 'file';
+    photoFile.accept = 'image/png,image/jpeg,image/webp';
+    photoFile.style.marginTop = '8px';
+    photoFile.style.fontSize = '12px';
+    var photoStatus = document.createElement('div');
+    photoStatus.style.fontSize = '12px';
+    photoFile.addEventListener('change', function () {
+      var f = photoFile.files && photoFile.files[0];
+      if (!f) return;
+      var token = getToken();
+      if (!token) { showLogin(); return; }
+      photoStatus.textContent = 'Uploading…';
+      photoStatus.style.color = '#6b6580';
+      fetch('/api/upload?slot=' + encodeURIComponent('story-photo-' + story.id), {
+        method: 'POST',
+        headers: { 'content-type': f.type, 'authorization': 'Bearer ' + token },
+        body: f,
+      })
+        .then(function (r) {
+          if (r.status === 401) { showLogin(); throw new Error('session expired'); }
+          return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+        })
+        .then(function (res) {
+          if (!res.ok) throw new Error(res.d.error || 'upload failed');
+          story.photo = res.d.url;
+          photoStatus.textContent = 'Uploaded ✓ (click "Save all changes" to publish)';
+          photoStatus.style.color = '#1E7A4C';
+          if (preview.tagName === 'IMG') { preview.src = res.d.url; }
+          else { var img = document.createElement('img'); img.src = res.d.url; preview.replaceWith(img); preview = img; }
+        })
+        .catch(function (err) {
+          photoStatus.textContent = err.message || 'upload failed';
+          photoStatus.style.color = '#B3261E';
+        });
+    });
+    photoWrap.appendChild(preview);
+    photoWrap.appendChild(photoFile);
+    photoWrap.appendChild(photoStatus);
+
+    var fields = document.createElement('div');
+    fields.className = 'story-fields';
+    STORY_FIELDS.forEach(function (f) {
+      var lab = document.createElement('span');
+      lab.className = 'row-label';
+      lab.textContent = f.label;
+      var control = document.createElement(f.input === 'textarea' ? 'textarea' : 'input');
+      if (f.input !== 'textarea') control.type = 'text';
+      else control.rows = 2;
+      control.value = story[f.key] || '';
+      control.addEventListener('input', function () { story[f.key] = control.value; });
+      fields.appendChild(lab);
+      fields.appendChild(control);
+    });
+
+    var delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'delete-story';
+    delBtn.textContent = 'Delete this story';
+    delBtn.addEventListener('click', function () {
+      if (!confirm('Remove this story? This only takes effect once you click "Save all changes".')) return;
+      storiesState.splice(idx, 1);
+      renderStories();
+    });
+    fields.appendChild(delBtn);
+
+    card.appendChild(photoWrap);
+    card.appendChild(fields);
+    return card;
+  }
+
+  document.getElementById('add-story-btn').addEventListener('click', function () {
+    storiesState.push({
+      id: 'custom-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      category: '', who: '', struggle: '', did: '', now: '', photo: '',
+    });
+    renderStories();
+  });
+
+  document.getElementById('save-stories-btn').addEventListener('click', function () {
+    var token = getToken();
+    if (!token) { showLogin(); return; }
+    storiesStatusEl.textContent = 'Saving…';
+    storiesStatusEl.style.color = '#6b6580';
+    fetch('/api/stories', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token },
+      body: JSON.stringify({ stories: storiesState }),
+    })
+      .then(function (r) {
+        if (r.status === 401) { showLogin(); throw new Error('session expired'); }
+        return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+      })
+      .then(function (res) {
+        if (!res.ok) throw new Error(res.d.error || 'save failed');
+        storiesState = res.d.stories;
+        renderStories();
+        storiesStatusEl.textContent = 'Saved ✓ — live on the site now';
+        storiesStatusEl.style.color = '#1E7A4C';
+      })
+      .catch(function (err) {
+        storiesStatusEl.textContent = err.message || 'save failed';
+        storiesStatusEl.style.color = '#B3261E';
+      });
+  });
 
   if (getToken()) { showApp(); } else { showLogin(); }
 })();
