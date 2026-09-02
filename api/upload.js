@@ -40,6 +40,33 @@ async function saveManifest(manifest) {
   });
 }
 
+// Vercel's Node runtime only auto-parses JSON/form/text bodies into
+// req.body — anything else (an image upload, sent as the raw file bytes)
+// is left as an unconsumed stream. bodyParser is disabled below via
+// `config`, so we read that stream ourselves.
+function readRawBody(req, maxBytes) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let total = 0;
+    let tooLarge = false;
+    req.on('data', (chunk) => {
+      if (tooLarge) return;
+      total += chunk.length;
+      if (total > maxBytes) {
+        tooLarge = true;
+        resolve(null);
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on('end', () => {
+      if (!tooLarge) resolve(Buffer.concat(chunks));
+    });
+    req.on('error', reject);
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'method not allowed' });
@@ -64,13 +91,13 @@ export default async function handler(req, res) {
     return;
   }
 
-  const buffer = Buffer.isBuffer(req.body) ? req.body : Buffer.from(req.body || '');
-  if (!buffer.length) {
-    res.status(400).json({ error: 'empty upload' });
+  const buffer = await readRawBody(req, MAX_BYTES);
+  if (buffer === null) {
+    res.status(413).json({ error: 'image too large (max 8MB)' });
     return;
   }
-  if (buffer.length > MAX_BYTES) {
-    res.status(413).json({ error: 'image too large (max 8MB)' });
+  if (!buffer.length) {
+    res.status(400).json({ error: 'empty upload' });
     return;
   }
 
@@ -89,5 +116,5 @@ export default async function handler(req, res) {
 }
 
 export const config = {
-  api: { bodyParser: { sizeLimit: '9mb' } },
+  api: { bodyParser: false },
 };

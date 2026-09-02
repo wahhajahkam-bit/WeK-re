@@ -152,6 +152,18 @@
       });
   }
 
+  // Some browsers report an empty or non-standard file.type for certain
+  // extensions (.jfif is JPEG under a different name, for example), which
+  // the upload API would then reject as "unsupported image type". Fall
+  // back to the filename extension when the browser's own type guess
+  // isn't one of the three we accept.
+  var EXT_TYPES = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', jfif: 'image/jpeg', webp: 'image/webp' };
+  function resolveImageType(file) {
+    if (file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/webp') return file.type;
+    var ext = (file.name.split('.').pop() || '').toLowerCase();
+    return EXT_TYPES[ext] || file.type || 'application/octet-stream';
+  }
+
   function renderSlots() {
     slotsEl.innerHTML = '';
     fetch('/api/manifest', { cache: 'no-store' })
@@ -198,7 +210,7 @@
       if (!token) { showLogin(); return; }
       fetch('/api/upload?slot=' + encodeURIComponent(slot.id), {
         method: 'POST',
-        headers: { 'content-type': f.type, 'authorization': 'Bearer ' + token },
+        headers: { 'content-type': resolveImageType(f), 'authorization': 'Bearer ' + token },
         body: f,
       })
         .then(function (r) {
@@ -281,7 +293,7 @@
       photoStatus.style.color = '#6b6580';
       fetch('/api/upload?slot=' + encodeURIComponent('story-photo-' + story.id), {
         method: 'POST',
-        headers: { 'content-type': f.type, 'authorization': 'Bearer ' + token },
+        headers: { 'content-type': resolveImageType(f), 'authorization': 'Bearer ' + token },
         body: f,
       })
         .then(function (r) {
