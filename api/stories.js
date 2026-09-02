@@ -90,10 +90,6 @@ export default async function handler(req, res) {
         res.status(401).json({ error: 'unauthorized' });
         return;
       }
-      if (!process.env.BLOB_READ_WRITE_TOKEN) {
-        res.status(500).json({ error: 'Blob storage is not connected to this project yet (missing BLOB_READ_WRITE_TOKEN)' });
-        return;
-      }
       const body = req.body || {};
       const incoming = Array.isArray(body.stories) ? body.stories : null;
       if (!incoming) {

@@ -92,11 +92,6 @@ export default async function handler(req, res) {
       return;
     }
 
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      res.status(500).json({ error: 'Blob storage is not connected to this project yet (missing BLOB_READ_WRITE_TOKEN)' });
-      return;
-    }
-
     const buffer = await readRawBody(req, MAX_BYTES);
     if (buffer === null) {
       res.status(413).json({ error: 'image too large (max 8MB)' });
