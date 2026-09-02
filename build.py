@@ -38,6 +38,8 @@ LEAF_PAGES = [
     ('About-Us.dc.html', 'about'),
     ('Success-Stories.dc.html', 'stories'),
     ('For-Mentors.dc.html', 'mentors'),
+    ('Privacy-Policy.dc.html', ''),
+    ('Terms-of-Service.dc.html', ''),
 ]
 
 SUPPORT_FILES = [
