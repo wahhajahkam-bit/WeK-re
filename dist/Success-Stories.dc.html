@@ -179,10 +179,13 @@ class PageComponent extends DCLogic {
     stories.forEach(function (s, i) {
       var wrap = document.createElement('div');
       wrap.setAttribute('data-reveal', '');
-      wrap.style.cssText = 'display:flex;opacity:0;transform:translateY(18px);transition:opacity .7s ease ' + (i * 0.06) + 's,transform .7s ease ' + (i * 0.06) + 's';
+      // min-width:0 keeps a grid cell from growing past its column just
+      // because its content happens to be one long unbroken word/string —
+      // without it, a single oversized card widens its whole grid row.
+      wrap.style.cssText = 'display:flex;min-width:0;opacity:0;transform:translateY(18px);transition:opacity .7s ease ' + (i * 0.06) + 's,transform .7s ease ' + (i * 0.06) + 's';
 
       var article = document.createElement('article');
-      article.style.cssText = "background:#FDFCFA;border:1px solid #DFDBF0;border-radius:22px;overflow:hidden;display:flex;flex-direction:column;transition:transform .6s cubic-bezier(.33,.02,.3,1),box-shadow .7s cubic-bezier(.33,.02,.3,1)";
+      article.style.cssText = "background:#FDFCFA;border:1px solid #DFDBF0;border-radius:22px;overflow:hidden;display:flex;flex-direction:column;min-width:0;transition:transform .6s cubic-bezier(.33,.02,.3,1),box-shadow .7s cubic-bezier(.33,.02,.3,1)";
       article.setAttribute('style-hover', 'transform:translateY(-6px);box-shadow:0 16px 36px rgba(34,31,53,.10)');
 
       var photoBox = document.createElement('div');
@@ -213,7 +216,7 @@ class PageComponent extends DCLogic {
       body.style.cssText = 'padding:28px 28px 30px;display:flex;flex-direction:column;gap:18px';
 
       var tag = document.createElement('span');
-      tag.style.cssText = 'align-self:flex-start;background:#EBE9F5;color:#4F47A6;border-radius:999px;padding:6px 14px;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase';
+      tag.style.cssText = 'align-self:flex-start;max-width:100%;background:#EBE9F5;color:#4F47A6;border-radius:999px;padding:6px 14px;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;overflow-wrap:anywhere';
       tag.textContent = s.category || '';
 
       var fields = document.createElement('div');
@@ -225,9 +228,9 @@ class PageComponent extends DCLogic {
         lab.style.cssText = 'display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:' + (accent ? '#6C63C4' : '#8A85A0') + ';margin-bottom:5px';
         lab.textContent = label;
         var p = document.createElement('p');
-        p.style.cssText = accent
+        p.style.cssText = (accent
           ? 'margin:0;font-family:Ubuntu,serif;font-size:18px;line-height:1.5'
-          : 'margin:0;font-size:16.5px;line-height:1.72;color:#3D3853';
+          : 'margin:0;font-size:16.5px;line-height:1.72;color:#3D3853') + ';overflow-wrap:anywhere';
         p.textContent = text || '';
         d.appendChild(lab); d.appendChild(p);
         return d;

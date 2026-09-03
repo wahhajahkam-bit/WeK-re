@@ -66,16 +66,20 @@ async function writeStories(stories) {
   });
 }
 
+// Mirrors the maxLength values in site/cms.html's STORY_FIELDS — this is
+// the real enforcement (the CMS's maxlength is just UX), so the two
+// should stay in sync: long unbroken text otherwise breaks the equal-width
+// card grid on Success Stories.
 function sanitizeStory(s) {
   const id = String((s && s.id) || '').trim();
   if (!/^[a-z0-9-]{1,64}$/i.test(id)) return null;
   return {
     id,
-    category: String((s && s.category) || '').slice(0, 80),
-    who: String((s && s.who) || '').slice(0, 800),
-    struggle: String((s && s.struggle) || '').slice(0, 800),
-    did: String((s && s.did) || '').slice(0, 800),
-    now: String((s && s.now) || '').slice(0, 400),
+    category: String((s && s.category) || '').slice(0, 40),
+    who: String((s && s.who) || '').slice(0, 260),
+    struggle: String((s && s.struggle) || '').slice(0, 260),
+    did: String((s && s.did) || '').slice(0, 260),
+    now: String((s && s.now) || '').slice(0, 140),
     photo: typeof (s && s.photo) === 'string' ? s.photo.slice(0, 600) : '',
   };
 }

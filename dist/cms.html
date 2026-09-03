@@ -245,12 +245,16 @@
   }
 
   // --- Success Stories management ---------------------------------------
+  // maxLength keeps card sizes consistent on the live grid — the numbers
+  // match the length of the original example stories (roughly). A hard
+  // server-side cap in api/stories.js backs this up in case the API is
+  // ever called directly.
   var STORY_FIELDS = [
-    { key: 'category', label: 'Category tag', input: 'text' },
-    { key: 'who', label: 'Who they were', input: 'textarea' },
-    { key: 'struggle', label: 'The struggle', input: 'textarea' },
-    { key: 'did', label: 'What we did', input: 'textarea' },
-    { key: 'now', label: 'Where they are now', input: 'textarea' },
+    { key: 'category', label: 'Category tag', input: 'text', maxLength: 40 },
+    { key: 'who', label: 'Who they were', input: 'textarea', maxLength: 260 },
+    { key: 'struggle', label: 'The struggle', input: 'textarea', maxLength: 260 },
+    { key: 'did', label: 'What we did', input: 'textarea', maxLength: 260 },
+    { key: 'now', label: 'Where they are now', input: 'textarea', maxLength: 140 },
   ];
   var storiesState = [];
   var storiesStatusEl = document.getElementById('stories-status');
@@ -320,15 +324,26 @@
     var fields = document.createElement('div');
     fields.className = 'story-fields';
     STORY_FIELDS.forEach(function (f) {
+      var labRow = document.createElement('div');
+      labRow.style.cssText = 'display:flex;justify-content:space-between;align-items:baseline;gap:8px';
       var lab = document.createElement('span');
       lab.className = 'row-label';
+      lab.style.marginBottom = '0';
       lab.textContent = f.label;
+      var counter = document.createElement('span');
+      counter.style.cssText = 'font-size:11px;color:#8A85A0';
+      labRow.appendChild(lab);
+      labRow.appendChild(counter);
+
       var control = document.createElement(f.input === 'textarea' ? 'textarea' : 'input');
       if (f.input !== 'textarea') control.type = 'text';
       else control.rows = 2;
+      control.maxLength = f.maxLength;
       control.value = story[f.key] || '';
-      control.addEventListener('input', function () { story[f.key] = control.value; });
-      fields.appendChild(lab);
+      function updateCounter() { counter.textContent = control.value.length + ' / ' + f.maxLength; }
+      updateCounter();
+      control.addEventListener('input', function () { story[f.key] = control.value; updateCounter(); });
+      fields.appendChild(labRow);
       fields.appendChild(control);
     });
 
