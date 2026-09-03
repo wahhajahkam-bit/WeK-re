@@ -438,10 +438,41 @@
     var history = [];
     var open = false;
 
+    // Pages the assistant is allowed to link to, matching the
+    // [label](Page.dc.html) format instructed in api/chat.js's system
+    // prompt. Anything outside this list renders as plain escaped text
+    // instead of a link — the model's own output is never trusted enough
+    // to become an arbitrary href.
+    var ALLOWED_CHAT_LINKS = ['Home.dc.html', 'Who-We-Help.dc.html', 'How-It-Works.dc.html',
+      'Get-Help.dc.html', 'About-Us.dc.html', 'Success-Stories.dc.html', 'For-Mentors.dc.html'];
+
+    function escapeHtml(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function setBubbleText(bubble, text, isUser) {
+      if (isUser) { bubble.textContent = text; return; }
+      var linkRe = /\[([^\]]+)\]\(([^)]+)\)/g;
+      var html = '';
+      var lastIndex = 0;
+      var m;
+      while ((m = linkRe.exec(text))) {
+        html += escapeHtml(text.slice(lastIndex, m.index));
+        if (ALLOWED_CHAT_LINKS.indexOf(m[2]) !== -1) {
+          html += '<a href="' + m[2] + '" style="color:#4F47A6;text-decoration:underline;font-weight:500">' + escapeHtml(m[1]) + '</a>';
+        } else {
+          html += escapeHtml(m[0]);
+        }
+        lastIndex = linkRe.lastIndex;
+      }
+      html += escapeHtml(text.slice(lastIndex));
+      bubble.innerHTML = html;
+    }
+
     function addBubble(role, text) {
       var bubble = document.createElement('div');
       var isUser = role === 'user';
-      bubble.textContent = text;
+      setBubbleText(bubble, text, isUser);
       bubble.style.cssText = 'max-width:82%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.5;' +
         'white-space:pre-wrap;' + (isUser
           ? 'align-self:flex-end;background:#6C63C4;color:#fff;border-bottom-right-radius:4px'
@@ -486,12 +517,12 @@
           var reply = res.ok
             ? res.d.reply
             : [res.d && res.d.error, res.d && res.d.detail].filter(Boolean).join(' — ') || 'Something went wrong — please try again.';
-          thinking.textContent = reply;
+          setBubbleText(thinking, reply, false);
           history.push({ role: 'assistant', content: reply });
         })
         .catch(function () {
           sendBtn.disabled = false;
-          thinking.textContent = "Couldn't reach the chat right now — please try again in a moment.";
+          setBubbleText(thinking, "Couldn't reach the chat right now — please try again in a moment.", false);
         });
     });
   }
