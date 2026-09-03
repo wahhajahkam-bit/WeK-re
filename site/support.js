@@ -483,7 +483,9 @@
         .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
         .then(function (res) {
           sendBtn.disabled = false;
-          var reply = res.ok ? res.d.reply : (res.d && res.d.error) || 'Something went wrong — please try again.';
+          var reply = res.ok
+            ? res.d.reply
+            : [res.d && res.d.error, res.d && res.d.detail].filter(Boolean).join(' — ') || 'Something went wrong — please try again.';
           thinking.textContent = reply;
           history.push({ role: 'assistant', content: reply });
         })
