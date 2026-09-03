@@ -1,7 +1,7 @@
 // Open-ended chatbot for visitors. Calls the Gemini API server-side so the
 // API key never reaches the browser. No conversation is stored — the
 // client sends its own running history each turn.
-const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_MODEL = 'gemini-3.6-flash';
 
 const SYSTEM_PROMPT = `You are the We Käre assistant, embedded on the We Käre website.
 

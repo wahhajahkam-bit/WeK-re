@@ -1,6 +1,6 @@
 import { verifyToken, bearerToken } from './_auth.js';
 
-const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_MODEL = 'gemini-3.6-flash';
 
 // Same caps as sanitizeStory() in api/stories.js / STORY_FIELDS in
 // site/cms.html — long unbroken text breaks the equal-width card grid on
