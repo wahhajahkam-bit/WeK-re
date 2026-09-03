@@ -1,6 +1,8 @@
-// Open-ended chatbot for visitors. Calls the Anthropic API server-side so
-// the API key never reaches the browser. No conversation is stored — the
+// Open-ended chatbot for visitors. Calls the Gemini API server-side so the
+// API key never reaches the browser. No conversation is stored — the
 // client sends its own running history each turn.
+const GEMINI_MODEL = 'gemini-2.5-flash';
+
 const SYSTEM_PROMPT = `You are the We Käre assistant, embedded on the We Käre website.
 
 We Käre is a free, no-login, no-cost job-help service, part of the Konsälidön
@@ -29,7 +31,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     res.status(500).json({ error: 'Chat is not configured on the server yet' });
     return;
@@ -48,21 +50,25 @@ export default async function handler(req, res) {
     return;
   }
 
+  // Gemini uses 'model' where Claude/OpenAI-style APIs use 'assistant'.
+  const contents = messages.map((m) => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }],
+  }));
+
   try {
-    const upstream = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-5',
-        max_tokens: 600,
-        system: SYSTEM_PROMPT,
-        messages,
-      }),
-    });
+    const upstream = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          contents,
+          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          generationConfig: { maxOutputTokens: 600 },
+        }),
+      }
+    );
 
     if (!upstream.ok) {
       const detail = await upstream.text();
@@ -71,9 +77,8 @@ export default async function handler(req, res) {
     }
 
     const data = await upstream.json();
-    const text = (data.content || [])
-      .filter((block) => block.type === 'text')
-      .map((block) => block.text)
+    const text = ((data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [])
+      .map((part) => part.text || '')
       .join('\n')
       .trim();
 
