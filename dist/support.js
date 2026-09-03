@@ -482,6 +482,32 @@
       return bubble;
     }
 
+    // Quick-reply chips matching the topic->page routing table in
+    // api/chat.js's system prompt, so clicking one reliably lands the
+    // matching link back in the reply instead of visitors having to guess
+    // what to type.
+    var SUGGESTIONS = [
+      'How does it work?',
+      'Who do you help?',
+      'Do you have any success stories?',
+      "Who's behind We Käre?",
+      'I need help finding a job',
+      "I'd like to become a mentor"
+    ];
+    var suggestionsBox = document.createElement('div');
+    suggestionsBox.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;padding:2px 2px 6px';
+    SUGGESTIONS.forEach(function (q) {
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.textContent = q;
+      chip.style.cssText = 'background:#fff;border:1px solid #DCD7EE;color:#4F47A6;border-radius:999px;' +
+        'padding:7px 13px;font-size:12.5px;cursor:pointer;transition:background .3s,border-color .3s';
+      chip.onmouseenter = function () { chip.style.background = '#EBE9F5'; chip.style.borderColor = '#C4BEE8'; };
+      chip.onmouseleave = function () { chip.style.background = '#fff'; chip.style.borderColor = '#DCD7EE'; };
+      chip.addEventListener('click', function () { sendMessage(q); });
+      suggestionsBox.appendChild(chip);
+    });
+
     var greeted = false;
     function setOpen(next) {
       open = next;
@@ -489,6 +515,8 @@
       if (open && !greeted) {
         greeted = true;
         addBubble('assistant', "Hi! I'm here to answer questions about We Käre — who we help, how it works, or how to get started. What would you like to know?");
+        log.appendChild(suggestionsBox);
+        log.scrollTop = log.scrollHeight;
       }
       if (open) input.focus();
     }
@@ -496,10 +524,10 @@
     toggle.addEventListener('click', function () { setOpen(!open); });
     closeBtn.addEventListener('click', function () { setOpen(false); });
 
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var text = input.value.trim();
+    function sendMessage(text) {
+      text = text.trim();
       if (!text) return;
+      if (suggestionsBox.parentNode) suggestionsBox.parentNode.removeChild(suggestionsBox);
       input.value = '';
       addBubble('user', text);
       history.push({ role: 'user', content: text });
@@ -524,6 +552,11 @@
           sendBtn.disabled = false;
           setBubbleText(thinking, "Couldn't reach the chat right now — please try again in a moment.", false);
         });
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      sendMessage(input.value);
     });
   }
 
