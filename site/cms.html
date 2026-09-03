@@ -30,8 +30,9 @@
   .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
   .topbar button{background:transparent;color:#6C63C4;border:1px solid #DCD7EE;padding:8px 16px}
   .topbar button:hover{background:#EBE9F5}
-  #add-story-btn, #save-stories-btn{background:#6C63C4;color:#fff}
-  #add-story-btn:hover, #save-stories-btn:hover{background:#7F76D6}
+  #add-story-btn, #save-stories-btn, #extract-story-btn{background:#6C63C4;color:#fff}
+  #add-story-btn:hover, #save-stories-btn:hover, #extract-story-btn:hover{background:#7F76D6}
+  #extract-story-btn:disabled{background:#B7B2D9;cursor:not-allowed}
   .story-card{border:1px solid #E7E3F5;border-radius:14px;padding:20px;display:flex;gap:20px;flex-wrap:wrap}
   .story-card .story-photo{flex:0 0 160px}
   .story-card .story-photo img, .story-card .story-photo .empty{width:160px;height:160px;object-fit:cover;border-radius:10px;background:#EBE9F5;display:flex;align-items:center;justify-content:center;color:#8A85A0;font-size:12.5px;text-align:center}
@@ -66,8 +67,18 @@
     <div class="card" style="margin-top:32px">
       <div class="topbar" style="margin-bottom:18px">
         <h2 style="font-family:Ubuntu,serif;font-weight:400;font-size:20px;margin:0">Success Stories</h2>
-        <button id="add-story-btn" type="button">+ Add story</button>
+        <button id="add-story-btn" type="button">+ Add story (blank)</button>
       </div>
+
+      <div style="border:1px solid #E7E3F5;border-radius:14px;padding:18px 20px;margin-bottom:24px;display:flex;flex-direction:column;gap:10px">
+        <span class="row-label" style="margin-bottom:0">Paste a story to auto-fill a new card</span>
+        <textarea id="paste-story-input" rows="5" placeholder="Paste the full story text here — Gemini will split it into category, who they were, the struggle, what we did, and where they are now." style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #DCD7EE;font-size:14px;font-family:inherit;resize:vertical"></textarea>
+        <div style="display:flex;align-items:center;gap:14px">
+          <button id="extract-story-btn" type="button">Extract & add story</button>
+          <span id="extract-story-status" style="font-size:13px"></span>
+        </div>
+      </div>
+
       <div id="stories-list" style="display:flex;flex-direction:column;gap:20px"></div>
       <div style="margin-top:22px;display:flex;align-items:center;gap:14px">
         <button id="save-stories-btn" type="button">Save all changes</button>
@@ -363,12 +374,53 @@
     return card;
   }
 
+  function newStoryId() {
+    return 'custom-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+
   document.getElementById('add-story-btn').addEventListener('click', function () {
-    storiesState.push({
-      id: 'custom-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      category: '', who: '', struggle: '', did: '', now: '', photo: '',
-    });
+    storiesState.push({ id: newStoryId(), category: '', who: '', struggle: '', did: '', now: '', photo: '' });
     renderStories();
+  });
+
+  var pasteInput = document.getElementById('paste-story-input');
+  var extractBtn = document.getElementById('extract-story-btn');
+  var extractStatus = document.getElementById('extract-story-status');
+  extractBtn.addEventListener('click', function () {
+    var text = pasteInput.value.trim();
+    if (!text) { extractStatus.textContent = 'paste a story first'; extractStatus.style.color = '#B3261E'; return; }
+    var token = getToken();
+    if (!token) { showLogin(); return; }
+    extractBtn.disabled = true;
+    extractStatus.textContent = 'Reading with Gemini…';
+    extractStatus.style.color = '#6b6580';
+    fetch('/api/extract-story', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token },
+      body: JSON.stringify({ text: text }),
+    })
+      .then(function (r) {
+        if (r.status === 401) { showLogin(); throw new Error('session expired'); }
+        return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+      })
+      .then(function (res) {
+        extractBtn.disabled = false;
+        if (!res.ok) throw new Error(res.d.error || 'extraction failed');
+        storiesState.push({
+          id: newStoryId(),
+          category: res.d.category || '', who: res.d.who || '', struggle: res.d.struggle || '',
+          did: res.d.did || '', now: res.d.now || '', photo: '',
+        });
+        renderStories();
+        pasteInput.value = '';
+        extractStatus.textContent = 'Added below ✓ — review it, add a photo, then click "Save all changes"';
+        extractStatus.style.color = '#1E7A4C';
+      })
+      .catch(function (err) {
+        extractBtn.disabled = false;
+        extractStatus.textContent = err.message || 'extraction failed';
+        extractStatus.style.color = '#B3261E';
+      });
   });
 
   document.getElementById('save-stories-btn').addEventListener('click', function () {
