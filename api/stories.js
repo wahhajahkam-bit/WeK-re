@@ -59,6 +59,10 @@ async function writeStories(stories) {
     addRandomSuffix: false,
     allowOverwrite: true,
     contentType: 'application/json',
+    // Overwritten at the same fixed URL on every save — without this,
+    // Blob's CDN keeps serving the pre-edit stories list for up to a year
+    // even though the underlying object changed.
+    cacheControlMaxAge: 0,
   });
 }
 

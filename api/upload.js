@@ -37,6 +37,11 @@ async function saveManifest(manifest) {
     addRandomSuffix: false,
     allowOverwrite: true,
     contentType: 'application/json',
+    // manifest.json is overwritten at the same URL on every upload — Blob's
+    // CDN caches a URL's content for a year by default, so without this the
+    // CDN keeps serving the pre-upload manifest indefinitely even though
+    // the underlying object changed.
+    cacheControlMaxAge: 0,
   });
 }
 
@@ -107,6 +112,11 @@ export default async function handler(req, res) {
       addRandomSuffix: false,
       allowOverwrite: true,
       contentType,
+      // Same fixed-URL-overwrite caching issue as manifest.json below —
+      // the ?v= query string on the URL we hand back is the real
+      // cache-buster for visitors, but keep the underlying object
+      // itself short-lived too rather than relying on that alone.
+      cacheControlMaxAge: 0,
     });
 
     const manifest = await getManifest();
