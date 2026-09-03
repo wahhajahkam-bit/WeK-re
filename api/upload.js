@@ -22,7 +22,12 @@ const MAX_BYTES = 8 * 1024 * 1024;
 async function getManifest() {
   const { blobs } = await list({ prefix: 'manifest.json', limit: 1 });
   if (!blobs.length) return {};
-  const r = await fetch(blobs[0].url, { cache: 'no-store' });
+  // cacheControlMaxAge:0 on the write helps, but a CDN in front of a fixed
+  // blob URL can still hand back a stale copy briefly after an overwrite —
+  // appending a cache-busting query makes every request a URL the CDN has
+  // never cached before, sidestepping that entirely rather than trusting
+  // the header to be honored everywhere instantly.
+  const r = await fetch(`${blobs[0].url}?t=${Date.now()}`, { cache: 'no-store' });
   if (!r.ok) return {};
   try {
     return await r.json();

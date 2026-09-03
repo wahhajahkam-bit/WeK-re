@@ -10,13 +10,16 @@ export default async function handler(req, res) {
       res.status(200).json({});
       return;
     }
-    const r = await fetch(blobs[0].url, { cache: 'no-store' });
+    // See the matching comment in api/upload.js's getManifest() — the
+    // cache-busting query string is what actually guarantees freshness,
+    // not the response header alone.
+    const r = await fetch(`${blobs[0].url}?t=${Date.now()}`, { cache: 'no-store' });
     if (!r.ok) {
       res.status(200).json({});
       return;
     }
     const data = await r.json();
-    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+    res.setHeader('Cache-Control', 'no-store');
     res.status(200).json(data);
   } catch (err) {
     res.status(200).json({});

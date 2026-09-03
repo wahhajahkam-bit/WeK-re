@@ -43,7 +43,10 @@ async function readStories() {
     await writeStories(DEFAULT_STORIES);
     return DEFAULT_STORIES;
   }
-  const r = await fetch(blobs[0].url, { cache: 'no-store' });
+  // See the matching comment in api/upload.js's getManifest() — the
+  // cache-busting query is what guarantees freshness against Blob's CDN,
+  // not the fetch cache mode or the write's cacheControlMaxAge alone.
+  const r = await fetch(`${blobs[0].url}?t=${Date.now()}`, { cache: 'no-store' });
   if (!r.ok) return DEFAULT_STORIES;
   try {
     const data = await r.json();
@@ -88,7 +91,7 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       const stories = await readStories();
-      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+      res.setHeader('Cache-Control', 'no-store');
       res.status(200).json({ stories });
       return;
     }
