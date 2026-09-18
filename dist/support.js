@@ -232,7 +232,11 @@
   // Fetched once per page load; the CMS (cms.html) writes to this manifest
   // via /api/upload, and every <image-slot id="..."> below checks it so an
   // uploaded photo replaces the placeholder without a rebuild/redeploy.
-  var wekareManifestPromise = fetch('/api/manifest', { cache: 'no-store' })
+  // No cache:'no-store' here on purpose — this site is multi-page, so
+  // every nav click re-runs this fetch. Letting the browser and edge honor
+  // the endpoint's short cache headers is what keeps photos appearing
+  // immediately instead of after a fresh round trip on every single page.
+  var wekareManifestPromise = fetch('/api/manifest')
     .then(function (r) { return r.ok ? r.json() : {}; })
     .catch(function () { return {}; });
 

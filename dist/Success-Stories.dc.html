@@ -124,7 +124,7 @@
 </footer></div>
 </div>
 </div>
-<script src="support.js?v=9dbd3a500d"></script>
+<script src="support.js?v=b292fa3545"></script>
 <script>
 
 // Seed data — shown immediately while /api/stories loads, and used as the
@@ -166,7 +166,7 @@ var WEKARE_DEFAULT_STORIES = [
 class PageComponent extends DCLogic {
   componentDidMount() {
     this._renderStories(WEKARE_DEFAULT_STORIES);
-    fetch('/api/stories', { cache: 'no-store' })
+    fetch('/api/stories')
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d && Array.isArray(d.stories)) this._renderStories(d.stories); })
       .catch(() => {});

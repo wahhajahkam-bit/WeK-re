@@ -1,6 +1,5 @@
 import { verifyToken, bearerToken } from './_auth.js';
-
-const GEMINI_MODEL = 'gemini-3.6-flash';
+import { callGemini } from './_gemini.js';
 
 // Same caps as sanitizeStory() in api/stories.js / STORY_FIELDS in
 // site/cms.html — long unbroken text breaks the equal-width card grid on
@@ -60,48 +59,40 @@ export default async function handler(req, res) {
       return;
     }
 
-    const upstream = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`,
-      {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text }] }],
-          systemInstruction: { parts: [{ text: EXTRACT_PROMPT }] },
-          generationConfig: {
-            responseMimeType: 'application/json',
-            responseSchema: RESPONSE_SCHEMA,
-            maxOutputTokens: 500,
-          },
-        }),
-      }
-    );
+    const result = await callGemini({
+      apiKey,
+      contents: [{ role: 'user', parts: [{ text }] }],
+      systemInstruction: { parts: [{ text: EXTRACT_PROMPT }] },
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: RESPONSE_SCHEMA,
+        // Covers thinking tokens too, not just the JSON (see api/_gemini.js).
+        maxOutputTokens: 2048,
+      },
+    });
 
-    if (!upstream.ok) {
-      const detail = await upstream.text();
-      res.status(502).json({ error: 'extraction backend error', detail: detail.slice(0, 500) });
+    if (!result.ok) {
+      res.status(result.status || 502).json({ error: 'extraction backend error', detail: result.detail });
       return;
     }
-
-    const data = await upstream.json();
-    const raw = ((data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [])
-      .map((part) => part.text || '')
-      .join('');
 
     let parsed;
     try {
-      parsed = JSON.parse(raw);
+      parsed = JSON.parse(result.text);
     } catch {
-      res.status(502).json({ error: 'extraction returned unparseable output, try again or fill fields manually' });
+      res.status(502).json({
+        error: 'extraction returned unparseable output, try again or fill fields manually',
+        detail: result.text.slice(0, 200),
+      });
       return;
     }
 
-    const result = {};
+    const fields = {};
     for (const key of Object.keys(LIMITS)) {
-      result[key] = String(parsed[key] || '').slice(0, LIMITS[key]);
+      fields[key] = String(parsed[key] || '').slice(0, LIMITS[key]);
     }
 
-    res.status(200).json(result);
+    res.status(200).json(fields);
   } catch (err) {
     res.status(500).json({ error: 'extraction failed: ' + (err && err.message ? err.message : String(err)) });
   }

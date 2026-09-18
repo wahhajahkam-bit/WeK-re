@@ -91,7 +91,9 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       const stories = await readStories();
-      res.setHeader('Cache-Control', 'no-store');
+      // Same reasoning as api/manifest.js: brief edge caching so the
+      // Success Stories page isn't waiting on a cold function every load.
+      res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=30, stale-while-revalidate=300');
       res.status(200).json({ stories });
       return;
     }

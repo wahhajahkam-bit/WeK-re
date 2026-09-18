@@ -94,7 +94,7 @@ var WEKARE_DEFAULT_STORIES = [
 class Component extends DCLogic {
   componentDidMount() {
     this._renderStories(WEKARE_DEFAULT_STORIES);
-    fetch('/api/stories', { cache: 'no-store' })
+    fetch('/api/stories')
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d && Array.isArray(d.stories)) this._renderStories(d.stories); })
       .catch(() => {});

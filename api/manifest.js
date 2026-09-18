@@ -19,7 +19,14 @@ export default async function handler(req, res) {
       return;
     }
     const data = await r.json();
-    res.setHeader('Cache-Control', 'no-store');
+    // Every page load hits this before it can show any photo, so serving
+    // it uncached meant each visitor paid a cold start plus two round
+    // trips (list, then fetch the blob) before the placeholders could
+    // swap. Let the edge hold it briefly instead: max-age=0 keeps the
+    // browser honest, s-maxage lets the CDN answer instantly, and a CMS
+    // upload is visible within ~30s. The CMS itself appends a
+    // cache-busting query so an admin always sees the truth immediately.
+    res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=30, stale-while-revalidate=300');
     res.status(200).json(data);
   } catch (err) {
     res.status(200).json({});

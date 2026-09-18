@@ -1,7 +1,7 @@
 // Open-ended chatbot for visitors. Calls the Gemini API server-side so the
 // API key never reaches the browser. No conversation is stored — the
 // client sends its own running history each turn.
-const GEMINI_MODEL = 'gemini-3.6-flash';
+import { callGemini } from './_gemini.js';
 
 // This is the chatbot's whole knowledge base — everything it knows about
 // We Käre comes from what's written here, not from browsing the live site
@@ -84,33 +84,22 @@ export default async function handler(req, res) {
   }));
 
   try {
-    const upstream = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`,
-      {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          contents,
-          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          generationConfig: { maxOutputTokens: 600 },
-        }),
-      }
-    );
+    const result = await callGemini({
+      apiKey,
+      contents,
+      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      // Headroom matters: this budget covers thinking tokens as well as
+      // the reply itself (see api/_gemini.js).
+      generationConfig: { maxOutputTokens: 2048 },
+    });
 
-    if (!upstream.ok) {
-      const detail = await upstream.text();
-      res.status(502).json({ error: 'chat backend error', detail: detail.slice(0, 500) });
+    if (!result.ok) {
+      res.status(result.status || 502).json({ error: result.error, detail: result.detail });
       return;
     }
 
-    const data = await upstream.json();
-    const text = ((data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [])
-      .map((part) => part.text || '')
-      .join('\n')
-      .trim();
-
-    res.status(200).json({ reply: text || "Sorry, I didn't catch that — could you try again?" });
+    res.status(200).json({ reply: result.text });
   } catch (err) {
-    res.status(502).json({ error: 'chat backend unreachable' });
+    res.status(502).json({ error: 'chat backend unreachable', detail: err && err.message ? err.message : String(err) });
   }
 }

@@ -212,7 +212,9 @@
 
   function renderSlots() {
     slotsEl.innerHTML = '';
-    fetch('/api/manifest', { cache: 'no-store' })
+    // ?fresh= bypasses the short edge cache those endpoints set for
+    // visitors — an admin must always see what's actually stored.
+    fetch('/api/manifest?fresh=' + Date.now(), { cache: 'no-store' })
       .then(function (r) { return r.ok ? r.json() : {}; })
       .catch(function () { return {}; })
       .then(function (manifest) {
@@ -310,7 +312,7 @@
   var storiesListEl = document.getElementById('stories-list');
 
   function loadStories() {
-    fetch('/api/stories', { cache: 'no-store' })
+    fetch('/api/stories?fresh=' + Date.now(), { cache: 'no-store' })
       .then(function (r) { return r.ok ? r.json() : { stories: [] }; })
       .then(function (d) { storiesState = d.stories || []; renderStories(); })
       .catch(function () { storiesState = []; renderStories(); });
