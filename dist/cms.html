@@ -175,6 +175,41 @@
     return EXT_TYPES[ext] || file.type || 'application/octet-stream';
   }
 
+  // Full-resolution phone/stock photos (often several MB each) were the
+  // actual cause of "the site takes minutes to show photos" — nothing was
+  // resizing them, so every visitor's browser had to download the full
+  // original on every page load. Resize to a sane max dimension and
+  // re-encode as JPEG in the browser before it ever leaves the CMS, so
+  // what actually gets uploaded (and served to every visitor afterward)
+  // is a normal web-sized file instead.
+  var UPLOAD_MAX_DIMENSION = 1600;
+  var UPLOAD_JPEG_QUALITY = 0.82;
+  function compressImageForUpload(file) {
+    return new Promise(function (resolve) {
+      var objectUrl = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        URL.revokeObjectURL(objectUrl);
+        var scale = Math.min(1, UPLOAD_MAX_DIMENSION / Math.max(img.naturalWidth, img.naturalHeight));
+        var w = Math.max(1, Math.round(img.naturalWidth * scale));
+        var h = Math.max(1, Math.round(img.naturalHeight * scale));
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob(function (blob) {
+          if (blob) resolve({ blob: blob, type: 'image/jpeg' });
+          else resolve({ blob: file, type: resolveImageType(file) }); // canvas export failed, fall back to original
+        }, 'image/jpeg', UPLOAD_JPEG_QUALITY);
+      };
+      img.onerror = function () {
+        URL.revokeObjectURL(objectUrl);
+        resolve({ blob: file, type: resolveImageType(file) }); // couldn't decode (e.g. unsupported format), upload as-is
+      };
+      img.src = objectUrl;
+    });
+  }
+
   function renderSlots() {
     slotsEl.innerHTML = '';
     fetch('/api/manifest', { cache: 'no-store' })
@@ -215,14 +250,17 @@
     file.addEventListener('change', function () {
       var f = file.files && file.files[0];
       if (!f) return;
-      status.textContent = 'Uploading…';
+      status.textContent = 'Optimizing…';
       status.style.color = '#6b6580';
       var token = getToken();
       if (!token) { showLogin(); return; }
-      fetch('/api/upload?slot=' + encodeURIComponent(slot.id), {
-        method: 'POST',
-        headers: { 'content-type': resolveImageType(f), 'authorization': 'Bearer ' + token },
-        body: f,
+      compressImageForUpload(f).then(function (out) {
+        status.textContent = 'Uploading…';
+        return fetch('/api/upload?slot=' + encodeURIComponent(slot.id), {
+          method: 'POST',
+          headers: { 'content-type': out.type, 'authorization': 'Bearer ' + token },
+          body: out.blob,
+        });
       })
         .then(function (r) {
           if (r.status === 401) { showLogin(); throw new Error('session expired, please log in again'); }
@@ -304,12 +342,15 @@
       if (!f) return;
       var token = getToken();
       if (!token) { showLogin(); return; }
-      photoStatus.textContent = 'Uploading…';
+      photoStatus.textContent = 'Optimizing…';
       photoStatus.style.color = '#6b6580';
-      fetch('/api/upload?slot=' + encodeURIComponent('story-photo-' + story.id), {
-        method: 'POST',
-        headers: { 'content-type': resolveImageType(f), 'authorization': 'Bearer ' + token },
-        body: f,
+      compressImageForUpload(f).then(function (out) {
+        photoStatus.textContent = 'Uploading…';
+        return fetch('/api/upload?slot=' + encodeURIComponent('story-photo-' + story.id), {
+          method: 'POST',
+          headers: { 'content-type': out.type, 'authorization': 'Bearer ' + token },
+          body: out.blob,
+        });
       })
         .then(function (r) {
           if (r.status === 401) { showLogin(); throw new Error('session expired'); }
