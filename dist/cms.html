@@ -405,7 +405,7 @@
       })
       .then(function (res) {
         extractBtn.disabled = false;
-        if (!res.ok) throw new Error(res.d.error || 'extraction failed');
+        if (!res.ok) throw new Error([res.d.error, res.d.detail].filter(Boolean).join(' — ') || 'extraction failed');
         storiesState.push({
           id: newStoryId(),
           category: res.d.category || '', who: res.d.who || '', struggle: res.d.struggle || '',
