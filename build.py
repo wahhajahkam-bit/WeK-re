@@ -150,13 +150,33 @@ def inline_imports(body, nav_helmet, nav_body, nav_script,
     return body, mount_calls, extra_helmet
 
 
-def support_js_version():
-    """Short content hash of support.js, used to cache-bust the <script src>
-    so a fix to the runtime can't get stuck behind a stale cached copy in
-    a visitor's browser or Vercel's CDN — the URL only changes when the
-    file's actual content changes."""
-    data = open(os.path.join(SITE, 'support.js'), 'rb').read()
+def file_version(name):
+    """Short content hash of a file in site/, used to cache-bust its URL so a
+    fix can't get stuck behind a stale cached copy in a visitor's browser or
+    Vercel's CDN — the URL only changes when the content actually changes."""
+    data = open(os.path.join(SITE, name), 'rb').read()
     return hashlib.sha256(data).hexdigest()[:10]
+
+
+def support_js_version():
+    return file_version('support.js')
+
+
+def version_helper_scripts(html):
+    """The helper scripts (orbits, motion, steps, image-slot) are pulled in by
+    an inline loader that builds <script src> from a bare './name.js' string.
+    Without a version on those URLs they are cached indefinitely, so a fix to
+    an animation could be deployed and still never reach anyone — the browser
+    and CDN keep handing out the old file. Stamp each with its content hash,
+    the same way support.js already is."""
+    for name in SUPPORT_FILES:
+        if not name.endswith('.js') or name == 'support.js':
+            continue
+        html = html.replace(
+            "'./%s'" % name,
+            "'./%s?v=%s'" % (name, file_version(name)),
+        )
+    return html
 
 
 def build_page(filename, active, nav_helmet, nav_body, nav_script,
@@ -195,7 +215,7 @@ def build_page(filename, active, nav_helmet, nav_body, nav_script,
     html.append('</script>')
     html.append('</body>')
     html.append('</html>')
-    return '\n'.join(html)
+    return version_helper_scripts('\n'.join(html))
 
 
 def main():
