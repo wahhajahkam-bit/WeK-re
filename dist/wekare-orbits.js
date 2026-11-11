@@ -8,7 +8,10 @@
 (function () {
   "use strict";
   var TAU = Math.PI * 2, RAD = Math.PI / 180;
-  var REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Live query rather than a one-off boolean: read once at load, toggling the
+  // OS "reduce motion" setting left the canvas frozen on its still frame until
+  // a full reload, which is indistinguishable from a broken animation.
+  var REDUCE_MQ = matchMedia('(prefers-reduced-motion: reduce)');
 
   // deeper than the mark so the comets read against it on white
   var PALETTE = ['#6B46E5', '#8A63F0', '#A277F5', '#5C6FE8', '#7C4DD8', '#9B6BE8'];
@@ -154,6 +157,11 @@
           var hctx = hp.z > 0 ? fctx : bctx;
           var hd = depthFade(hp.k) * vis;
           var r = cm.w * hp.k * 2.4;
+          // createRadialGradient throws IndexSizeError on a non-finite
+          // coordinate or radius, which would kill the animation loop for
+          // good and leave the canvas frozen on its last frame. Skip the
+          // head instead; the next frame recomputes it.
+          if (!isFinite(hp.x) || !isFinite(hp.y) || !(r > 0)) continue;
           var g = hctx.createRadialGradient(hp.x, hp.y, 0, hp.x, hp.y, r * 2.6);
           g.addColorStop(0, rgba(col, 0.30 * hd));
           g.addColorStop(0.32, rgba(col, 0.10 * hd));
@@ -169,11 +177,36 @@
     }
 
     function frame(now) {
+      raf = null;
+      if (!shouldRun()) return;
       if (!last) last = now;
       clock += Math.min(now - last, 60) / 1000;
       last = now;
-      draw(clock);
-      raf = visible ? requestAnimationFrame(frame) : null;
+      // One thrown frame used to end the animation permanently, because the
+      // next requestAnimationFrame below never ran. Keep the loop alive and
+      // let the following frame try again.
+      try { draw(clock); } catch (e) { /* skip this frame */ }
+      raf = requestAnimationFrame(frame);
+    }
+
+    // The loop should run whenever the mark is on screen, the tab is in the
+    // foreground, and motion isn't being suppressed. Anything that changes one
+    // of those calls sync(), so there is exactly one place that decides.
+    function shouldRun() {
+      return visible && !REDUCE_MQ.matches && document.visibilityState !== 'hidden';
+    }
+
+    function sync() {
+      if (shouldRun()) {
+        if (!raf) { last = 0; raf = requestAnimationFrame(frame); }
+        return;
+      }
+      if (raf) { cancelAnimationFrame(raf); raf = null; }
+      // Reduced motion asks for a composed still rather than a blank frame.
+      if (REDUCE_MQ.matches && clock !== 2.4) {
+        clock = 2.4;
+        try { draw(clock); } catch (e) {}
+      }
     }
 
     resize();
@@ -181,19 +214,27 @@
     window.addEventListener('resize', resize);
     if (window.ResizeObserver) { var ro = new ResizeObserver(resize); ro.observe(wrap); }
 
-    if (REDUCE) {
-      clock = 2.4;   // a composed still, rings already spread out
-      draw(clock);
-    } else {
-      if (window.IntersectionObserver) {
-        var io = new IntersectionObserver(function (es) {
-          visible = es[0].isIntersecting;
-          if (visible && !raf) { last = 0; raf = requestAnimationFrame(frame); }
-        }, { threshold: 0 });
-        io.observe(wrap);
-      }
-      raf = requestAnimationFrame(frame);
+    if (window.IntersectionObserver) {
+      var io = new IntersectionObserver(function (es) {
+        visible = es[es.length - 1].isIntersecting;
+        sync();
+      }, { threshold: 0 });
+      io.observe(wrap);
     }
+    // A backgrounded tab stops delivering animation frames, and coming back
+    // did not reliably restart the loop before — the observer only fires on an
+    // actual intersection change, so a mark that never left the viewport got
+    // no restart and stayed frozen.
+    document.addEventListener('visibilitychange', sync);
+    if (REDUCE_MQ.addEventListener) REDUCE_MQ.addEventListener('change', sync);
+    else if (REDUCE_MQ.addListener) REDUCE_MQ.addListener(sync);
+
+    // Last-resort watchdog: if the loop should be running but isn't — for any
+    // reason not covered above — restart it rather than leave a frozen mark on
+    // the page. Cheap, and it only ever acts when something has gone wrong.
+    setInterval(function () { if (shouldRun() && !raf) sync(); }, 3000);
+
+    sync();
     return true;
   }
 
