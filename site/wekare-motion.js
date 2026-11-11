@@ -4,7 +4,10 @@
    window.WeKareMotion.dotPortrait(host)    dot veil over a portrait frame; scatters, then rolls away
 */
 (function () {
-  const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Motion is on for everyone by default; pausing is the visitor's own choice,
+  // held in <html data-motion> by the button in support.js. Read live rather
+  // than captured once, so the button takes effect without a reload.
+  function paused() { return document.documentElement.getAttribute('data-motion') === 'off'; }
   const PURPLE = [108, 99, 196];
   const LAVENDER = [167, 159, 232];
 
@@ -97,12 +100,12 @@
       }
     }
 
-    function start() { if (!raf && !REDUCED) raf = requestAnimationFrame(draw); }
+    function start() { if (!raf && !paused()) raf = requestAnimationFrame(draw); }
     function stop() { if (raf) { cancelAnimationFrame(raf); raf = null; } }
 
     if (!build()) return null;
     still();
-    if (REDUCED) return { destroy: function () {} };
+    document.addEventListener('wekare:motion', function () { paused() ? stop() : start(); });
 
     const onMove = function (e) {
       const r = cv.getBoundingClientRect();
@@ -151,7 +154,6 @@
     // happens to the frame clock the element is left holding a real sentence.
     function settleNow() { el.textContent = lines[idx]; }
     settleNow();
-    if (REDUCED) return { destroy: function () {} };
 
     function begin(target) {
       chars = target.split('');
@@ -195,10 +197,12 @@
     }
 
     function stop() { if (raf) { cancelAnimationFrame(raf); raf = null; } prev = 0; chars = null; waited = 0; settleNow(); }
-    function start() { if (!raf) { prev = 0; raf = requestAnimationFrame(tick); } }
+    function start() { if (!raf && !paused()) { prev = 0; raf = requestAnimationFrame(tick); } }
 
     const onVis = function () { if (document.visibilityState === 'hidden') stop(); else start(); };
+    const onMotion = function () { paused() ? stop() : start(); };
     document.addEventListener('visibilitychange', onVis);
+    document.addEventListener('wekare:motion', onMotion);
     window.addEventListener('beforeprint', stop);
     window.addEventListener('afterprint', start);
     if (document.visibilityState !== 'hidden') start();
@@ -329,7 +333,7 @@
     setOpen(false);
     paintStill();
 
-    if (!REDUCED) {
+    {
       host.addEventListener('pointermove', function (e) {
         const r = cv.getBoundingClientRect();
         ptr.x = e.clientX - r.left; ptr.y = e.clientY - r.top; ptr.active = true;
@@ -351,5 +355,5 @@
     return { open: function () { setOpen(true); }, close: function () { setOpen(false); } };
   }
 
-  window.WeKareMotion = { field: field, scramble: scramble, dotPortrait: dotPortrait, reduced: REDUCED };
+  window.WeKareMotion = { field: field, scramble: scramble, dotPortrait: dotPortrait, paused: paused };
 })();

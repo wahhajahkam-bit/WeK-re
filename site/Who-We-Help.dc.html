@@ -23,7 +23,8 @@
   :focus-visible { outline: 2px solid #6C63C4; outline-offset: 3px; border-radius: 4px; }
   @media print { [data-reveal] { opacity: 1 !important; transform: none !important; } }
   @keyframes auraDrift { 0%{transform:translate3d(0,0,0) scale(1)} 50%{transform:translate3d(-40px,26px,0) scale(1.08)} 100%{transform:translate3d(16px,-18px,0) scale(1.03)} }
-  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } }
+  /* Motion is paused by the visitor's own button (see the <head> bootstrap in
+     build.py), not by the OS setting. */
 </style>
 </helmet>
 <div style="background:#F7F5F0;font-family:'Ubuntu Sans',system-ui,sans-serif;color:#221F35;text-wrap:pretty">

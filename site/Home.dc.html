@@ -36,11 +36,12 @@
     to   { transform: translate(-50%, -50%) rotate(360deg) }
   }
   @keyframes markFade { from { opacity: 0 } to { opacity: 1 } }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation: none !important; }
-    [data-slide-line] { opacity: 0 !important; }
-    [data-slide-line]:first-child { opacity: 1 !important; }
-  }
+  /* Motion is on by default and paused only by the visitor's own button; the
+     paused rules live in the <head> bootstrap that build.py injects. The
+     cycling headline keeps only its first line visible when paused, since the
+     other two sit stacked on top of it and rely on the animation to fade. */
+  html[data-motion="off"] [data-slide-line] { opacity: 0 !important; }
+  html[data-motion="off"] [data-slide-line]:first-child { opacity: 1 !important; }
   a { color: #6C63C4; text-decoration: none; }
   a:hover { color: #4F47A6; }
   ::selection { background: #DCD8F2; }

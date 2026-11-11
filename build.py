@@ -48,6 +48,23 @@ SUPPORT_FILES = [
     'cms.html',
 ]
 
+# Motion is on for everyone by default and is controlled by the visitor's own
+# pause button (see initMotionToggle in support.js), not by the OS
+# "reduce motion" setting — a frozen hero read as broken rather than as a
+# considered still. This runs in <head>, before any stylesheet or body
+# content, so a visitor who paused motion never sees a frame of it first.
+MOTION_BOOTSTRAP = (
+    '<style>'
+    'html[data-motion="off"] *,'
+    'html[data-motion="off"] *::before,'
+    'html[data-motion="off"] *::after'
+    '{animation-play-state:paused!important;transition:none!important}'
+    '</style>'
+    '<script>(function(){var v="on";'
+    'try{if(localStorage.getItem("wekare-motion")==="off")v="off"}catch(e){}'
+    'document.documentElement.setAttribute("data-motion",v)})();</script>'
+)
+
 
 def read(name):
     with open(os.path.join(SITE, name), encoding='utf-8') as f:
@@ -199,6 +216,7 @@ def build_page(filename, active, nav_helmet, nav_body, nav_script,
     html.append('<meta charset="utf-8">')
     html.append('<meta name="viewport" content="width=device-width, initial-scale=1">')
     html.append('<title>%s</title>' % page_title)
+    html.append(MOTION_BOOTSTRAP)
     html.append(merged_helmet)
     html.append('</head>')
     html.append('<body>')

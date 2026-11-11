@@ -8,10 +8,13 @@
 (function () {
   "use strict";
   var TAU = Math.PI * 2, RAD = Math.PI / 180;
-  // Live query rather than a one-off boolean: read once at load, toggling the
-  // OS "reduce motion" setting left the canvas frozen on its still frame until
-  // a full reload, which is indistinguishable from a broken animation.
-  var REDUCE_MQ = matchMedia('(prefers-reduced-motion: reduce)');
+  // Motion runs for everyone by default. Whether it is paused is the
+  // visitor's own choice, held in <html data-motion> by the button in
+  // support.js — the OS "reduce motion" setting is deliberately not consulted
+  // here, because a frozen mark reads as broken rather than as a still.
+  function motionPaused() {
+    return document.documentElement.getAttribute('data-motion') === 'off';
+  }
 
   // deeper than the mark so the comets read against it on white
   var PALETTE = ['#6B46E5', '#8A63F0', '#A277F5', '#5C6FE8', '#7C4DD8', '#9B6BE8'];
@@ -193,7 +196,7 @@
     // foreground, and motion isn't being suppressed. Anything that changes one
     // of those calls sync(), so there is exactly one place that decides.
     function shouldRun() {
-      return visible && !REDUCE_MQ.matches && document.visibilityState !== 'hidden';
+      return visible && !motionPaused() && document.visibilityState !== 'hidden';
     }
 
     function sync() {
@@ -202,11 +205,6 @@
         return;
       }
       if (raf) { cancelAnimationFrame(raf); raf = null; }
-      // Reduced motion asks for a composed still rather than a blank frame.
-      if (REDUCE_MQ.matches && clock !== 2.4) {
-        clock = 2.4;
-        try { draw(clock); } catch (e) {}
-      }
     }
 
     resize();
@@ -226,8 +224,7 @@
     // actual intersection change, so a mark that never left the viewport got
     // no restart and stayed frozen.
     document.addEventListener('visibilitychange', sync);
-    if (REDUCE_MQ.addEventListener) REDUCE_MQ.addEventListener('change', sync);
-    else if (REDUCE_MQ.addListener) REDUCE_MQ.addListener(sync);
+    document.addEventListener('wekare:motion', sync);
 
     // Last-resort watchdog: if the loop should be running but isn't — for any
     // reason not covered above — restart it rather than leave a frozen mark on

@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>We Käre</title>
+<style>html[data-motion="off"] *,html[data-motion="off"] *::before,html[data-motion="off"] *::after{animation-play-state:paused!important;transition:none!important}</style><script>(function(){var v="on";try{if(localStorage.getItem("wekare-motion")==="off")v="off"}catch(e){}document.documentElement.setAttribute("data-motion",v)})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Ubuntu+Sans:ital,wght@0,300..700;1,300..700&display=swap" media="print" onload="this.media='all'">
@@ -21,7 +22,8 @@
   :focus-visible { outline: 2px solid #6C63C4; outline-offset: 3px; border-radius: 4px; }
   @media print { [data-reveal] { opacity: 1 !important; transform: none !important; } }
   @keyframes auraDrift { 0%{transform:translate3d(0,0,0) scale(1)} 50%{transform:translate3d(-40px,26px,0) scale(1.08)} 100%{transform:translate3d(16px,-18px,0) scale(1.03)} }
-  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } }
+  /* Motion is paused by the visitor's own button (see the <head> bootstrap in
+     build.py), not by the OS setting. */
 </style>
 <style>
   a { color: #6C63C4; text-decoration: none; }
@@ -181,7 +183,7 @@
 </footer></div>
 </div>
 </div>
-<script src="support.js?v=b292fa3545"></script>
+<script src="support.js?v=4b0732c899"></script>
 <script>
 
 class PageComponent extends DCLogic {

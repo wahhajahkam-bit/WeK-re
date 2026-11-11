@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>We Käre</title>
+<style>html[data-motion="off"] *,html[data-motion="off"] *::before,html[data-motion="off"] *::after{animation-play-state:paused!important;transition:none!important}</style><script>(function(){var v="on";try{if(localStorage.getItem("wekare-motion")==="off")v="off"}catch(e){}document.documentElement.setAttribute("data-motion",v)})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Ubuntu+Sans:ital,wght@0,300..700;1,300..700&display=swap" media="print" onload="this.media='all'">
@@ -11,7 +12,7 @@
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css"></noscript>
 <script>
-(function(){var r=window.__resources||{};['./image-slot.js?v=fff26d081c','./wekare-motion.js?v=d3c3dfd186','./wekare-orbits.js?v=d9d09cca14'].forEach(function(p){var k='__wk_'+p;if(window[k])return;window[k]=1;var s=document.createElement('script');s.src=(r[p]||p);document.head.appendChild(s);});})();
+(function(){var r=window.__resources||{};['./image-slot.js?v=fff26d081c','./wekare-motion.js?v=1ee58bbebb','./wekare-orbits.js?v=ec7b73631c'].forEach(function(p){var k='__wk_'+p;if(window[k])return;window[k]=1;var s=document.createElement('script');s.src=(r[p]||p);document.head.appendChild(s);});})();
 </script>
 <style>
   body { margin: 0; background: #F7F5F0; color: #221F35; }
@@ -34,11 +35,12 @@
     to   { transform: translate(-50%, -50%) rotate(360deg) }
   }
   @keyframes markFade { from { opacity: 0 } to { opacity: 1 } }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation: none !important; }
-    [data-slide-line] { opacity: 0 !important; }
-    [data-slide-line]:first-child { opacity: 1 !important; }
-  }
+  /* Motion is on by default and paused only by the visitor's own button; the
+     paused rules live in the <head> bootstrap that build.py injects. The
+     cycling headline keeps only its first line visible when paused, since the
+     other two sit stacked on top of it and rely on the animation to fade. */
+  html[data-motion="off"] [data-slide-line] { opacity: 0 !important; }
+  html[data-motion="off"] [data-slide-line]:first-child { opacity: 1 !important; }
   a { color: #6C63C4; text-decoration: none; }
   a:hover { color: #4F47A6; }
   ::selection { background: #DCD8F2; }
@@ -357,7 +359,7 @@
 </footer></div>
 </div>
 </div>
-<script src="support.js?v=b292fa3545"></script>
+<script src="support.js?v=4b0732c899"></script>
 <script>
 
 class PageComponent extends DCLogic {

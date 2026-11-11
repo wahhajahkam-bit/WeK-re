@@ -376,6 +376,57 @@
     });
   }
 
+  // Visitor-facing motion switch. Motion runs for everyone by default; this
+  // is the opt-out. The <html data-motion> attribute is the single source of
+  // truth — the CSS rule injected in <head> pauses every CSS animation off
+  // it, and the canvas animations (wekare-orbits, wekare-motion) read it too,
+  // so there's no load-order dependency between these files.
+  function motionIsOn() {
+    return document.documentElement.getAttribute('data-motion') !== 'off';
+  }
+
+  function initMotionToggle() {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.style.cssText = 'position:fixed;left:22px;bottom:22px;width:44px;height:44px;border-radius:50%;' +
+      'background:#fff;color:#6C63C4;border:1px solid #DCD7EE;display:flex;align-items:center;' +
+      'justify-content:center;font-size:17px;cursor:pointer;z-index:9998;' +
+      'box-shadow:0 4px 14px rgba(34,31,53,.14);transition:background .3s,color .3s';
+    btn.onmouseenter = function () { btn.style.background = '#EBE9F5'; };
+    btn.onmouseleave = function () { btn.style.background = '#fff'; };
+
+    // Inline SVG rather than the Phosphor icon font: the font comes from a
+    // CDN, and if that request fails the button would render as a blank
+    // circle with no hint of what it does.
+    var PAUSE_SVG = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="currentColor">' +
+      '<rect x="6" y="5" width="4" height="14" rx="1.2"></rect>' +
+      '<rect x="14" y="5" width="4" height="14" rx="1.2"></rect></svg>';
+    var PLAY_SVG = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="currentColor">' +
+      '<path d="M8 5.2v13.6a1 1 0 0 0 1.54.84l10.1-6.8a1 1 0 0 0 0-1.68L9.54 4.36A1 1 0 0 0 8 5.2z"></path></svg>';
+
+    function render() {
+      var on = motionIsOn();
+      btn.innerHTML = on ? PAUSE_SVG : PLAY_SVG;
+      var label = on ? 'Pause animations' : 'Play animations';
+      btn.setAttribute('aria-label', label);
+      btn.title = label;
+      btn.setAttribute('aria-pressed', on ? 'false' : 'true');
+    }
+
+    btn.addEventListener('click', function () {
+      var next = motionIsOn() ? 'off' : 'on';
+      document.documentElement.setAttribute('data-motion', next);
+      try { localStorage.setItem('wekare-motion', next); } catch (e) {}
+      render();
+      // Canvas loops aren't CSS and can't be paused by the stylesheet, so
+      // tell them directly.
+      document.dispatchEvent(new CustomEvent('wekare:motion', { detail: { on: next === 'on' } }));
+    });
+
+    render();
+    document.body.appendChild(btn);
+  }
+
   window.DC = {
     mount: mount,
     collectFormFields: collectFormFields,
@@ -564,9 +615,14 @@
     });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initChatWidget);
-  } else {
+  function initWidgets() {
     initChatWidget();
+    initMotionToggle();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initWidgets);
+  } else {
+    initWidgets();
   }
 })();
